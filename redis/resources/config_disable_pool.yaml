@@ -1,0 +1,49 @@
+props:
+  version: v1
+  appId: xxx
+  monitorId: sdk_test
+  cloud: huaweicloud
+  region: cn-north-4
+  azs: az1
+etcd: # Optional
+  address: 127.0.0.1:2379
+  apiVersion: v3
+  username: root
+  password: 123456
+  httpsEnable: false
+redis:
+  redisGroupName: xxx-redis-group
+  username: xxx # for redis 6.0
+  password: yyy
+  nearest: dc1
+  connectionPool:
+    enable: false
+  servers:
+    dc1:
+      hosts: 127.0.0.1:6379
+      password:
+      type: normal  # cluster, master-slave, normal
+      cloud: huaweicloud  # cloud
+      region: cn-north-4  # region id
+      azs: az1  # azs
+      pool: # Optional
+        maxTotal: 100
+        maxIdle: 8
+        minIdle: 0
+        maxWaitMillis: 10000
+        timeBetweenEvictionRunsMillis: 1000
+    dc2:
+      hosts: 127.0.0.1:6380
+      password:
+      type: normal  # cluster, master-slave, normal
+      cloud: huaweicloud  # cloud
+      region: cn-north-4  # region id
+      azs: az1  # azs
+      pool: # Optional
+        maxTotal: 100
+        maxIdle: 8
+        minIdle: 0
+        maxWaitMillis: 10000
+        timeBetweenEvictionRunsMillis: 1000
+routeAlgorithm: single-read-write  # local-read-single-write, single-read-write
+active: dc1
