@@ -1,0 +1,61 @@
+props:
+  version: v1  # project version
+  appId: xxx-appId  # mas appid
+  monitorId: xxx-monitor-id  # mas monitor id
+  databaseName: xxx-database
+
+# etcd config(optional)
+etcd:
+  address: 127.0.0.1:2379
+  apiVersion: v3  #etcd version
+  username: root
+  password: 123456
+  httpsEnable: false
+
+# require
+datasource:
+  ds0:
+    url: tcp(127.0.0.1:3306)/ds0
+    username: root
+    password: root
+  ds0-slave0:
+    url: tcp(127.0.0.1:3306)/ds0-slave0
+    username: root
+    password: root
+  ds0-slave1:
+    url: tcp(127.0.0.1:3306)/ds0-slave1
+    username: root
+    password: root
+  ds1:
+    url: tcp(127.0.0.1:3306)/ds1
+    username: root
+    password: root
+  ds1-slave0:
+    url: tcp(127.0.0.1:3306)/ds1-slave0
+    username: root
+    password: root
+  ds1-slave1:
+    url: tcp(127.0.0.1:3306)/ds1-slave1
+    username: root
+    password: root
+
+# require
+router:
+  active: c0
+  routeAlgorithm: single-read-write
+  retry:
+    times: 10
+    delay: 50  # ms
+  nodes:
+    c0:
+      master: ds0
+      loadBalance: RANDOM
+      slaves:
+        - ds0-slave0
+        - ds0-slave1
+    c1:
+      master: ds1
+      loadBalance: ROUND_ROBIN
+      slaves:
+        - ds1-slave0
+        - ds1-slave1
