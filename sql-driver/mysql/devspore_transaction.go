@@ -18,20 +18,20 @@ import "database/sql/driver"
 
 // devsporeTx implements driver.Tx interface.
 type devsporeTx struct {
-	transactionChan chan *transactionChan
-	actualTx        driver.Tx
+	dc       *devsporeConn
+	actualTx driver.Tx
 }
 
 // Commit implements driver.Tx interface.
 // Commit send transactionChan to clear transactionHolder before return.
 func (tx *devsporeTx) Commit() (err error) {
-	tx.transactionChan <- &transactionChan{}
+	tx.dc.inTransaction = false
 	return tx.actualTx.Commit()
 }
 
 // Rollback implements driver.Tx interface.
 // Rollback send transactionChan to clear transactionHolder before return.
 func (tx *devsporeTx) Rollback() (err error) {
-	tx.transactionChan <- &transactionChan{}
+	tx.dc.inTransaction = false
 	return tx.actualTx.Rollback()
 }

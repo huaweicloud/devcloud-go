@@ -19,26 +19,16 @@ import (
 	"database/sql/driver"
 	"errors"
 	"log"
+	"sync"
 
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/datasource"
 )
 
 type devsporeConn struct {
 	clusterDataSource *datasource.ClusterDataSource
-	tranHolder        *transactionHolder
-	tranCloseChan     chan *transactionChan // when transaction is over, use tranCloseChan to clear transactionHolder
-	cachedConn        map[string]driver.Conn
+	cachedConn        sync.Map
+	inTransaction     bool
 }
-
-// transactionHolder transaction related
-type transactionHolder struct {
-	isBeginTransaction    bool // when sql is "BEGIN", set true
-	isTransactionReadOnly bool
-	isInTransaction       bool
-	conn                  driver.Conn
-}
-
-type transactionChan struct{}
 
 // Begin Deprecated
 func (dc *devsporeConn) Begin() (driver.Tx, error) {
@@ -48,9 +38,10 @@ func (dc *devsporeConn) Begin() (driver.Tx, error) {
 // Close implements driver.Conn, will close all cached connection.
 func (dc *devsporeConn) Close() error {
 	var err error
-	for _, conn := range dc.cachedConn {
-		err = conn.Close()
-	}
+	dc.cachedConn.Range(func(key, value interface{}) bool {
+		err = value.(driver.Conn).Close()
+		return true
+	})
 	return err
 }
 
@@ -79,21 +70,9 @@ func (dc *devsporeConn) Ping(ctx context.Context) (err error) {
 	return nil
 }
 
-// monitorTransaction monitor whether the transaction is over
-func (dc *devsporeConn) monitorTransaction() {
-	for range dc.tranCloseChan {
-		dc.tranHolder = &transactionHolder{}
-		close(dc.tranCloseChan)
-		return
-	}
-}
-
 // BeginTx implements driver.ConnBeginTx interface
 func (dc *devsporeConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
-	dc.tranHolder = &transactionHolder{
-		isBeginTransaction:    true,
-		isTransactionReadOnly: opts.ReadOnly,
-	}
+	dc.inTransaction = true
 	req := &executorReq{
 		ctx:        ctx,
 		opts:       opts,
@@ -106,17 +85,9 @@ func (dc *devsporeConn) BeginTx(ctx context.Context, opts driver.TxOptions) (dri
 		return nil, resp.err
 	}
 
-	// set transaction related
-	dc.tranHolder.isInTransaction = true
-	dc.tranHolder.isBeginTransaction = false
-	dc.tranCloseChan = make(chan *transactionChan)
-
-	// start a goroutine to monitor whether the transaction is over
-	go dc.monitorTransaction()
-
 	return &devsporeTx{
-		actualTx:        resp.tx,
-		transactionChan: dc.tranCloseChan,
+		dc:       dc,
+		actualTx: resp.tx,
 	}, nil
 }
 
@@ -169,26 +140,20 @@ func (dc *devsporeConn) CheckNamedValue(nv *driver.NamedValue) (err error) {
 }
 
 // getConnection from cache or new connection according to dsn
-func (dc *devsporeConn) getConnection(ctx context.Context, actualDSN string, isBeginTransaction, isInTransaction bool) (driver.Conn, error) {
-	if isInTransaction && dc.tranHolder.conn != nil {
-		return dc.tranHolder.conn, nil
+func (dc *devsporeConn) getConnection(ctx context.Context, actualDSN string) (driver.Conn, error) {
+	if conn, ok := dc.cachedConn.Load(actualDSN); ok {
+		return conn.(driver.Conn), nil
 	}
-	if conn, ok := dc.cachedConn[actualDSN]; ok {
-		return conn, nil
-	}
-	conn, err := creationConn(ctx, actualDSN)
+	conn, err := dc.creationConn(ctx, actualDSN)
 	if err != nil {
 		return nil, err
 	}
-	dc.cachedConn[actualDSN] = conn
-	if isBeginTransaction {
-		dc.tranHolder.conn = conn
-	}
+	dc.cachedConn.Store(actualDSN, conn)
 	return conn, nil
 }
 
 // creationConn according to dsn
-func creationConn(ctx context.Context, dsn string) (driver.Conn, error) {
+func (dc *devsporeConn) creationConn(ctx context.Context, dsn string) (driver.Conn, error) {
 	driCtx, ok := actualDriver.(driver.DriverContext)
 	if !ok {
 		return nil, errors.New("type assertion driver.DriverContext failed")

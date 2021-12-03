@@ -104,7 +104,7 @@ func (dsmt *devsporeStmt) getStatement(ctx context.Context, dsn string) (driver.
 	if dsmt.stmt != nil {
 		return dsmt.stmt, nil
 	}
-	conn, err := dsmt.dc.getConnection(ctx, dsn, dsmt.dc.tranHolder.isBeginTransaction, dsmt.dc.tranHolder.isInTransaction)
+	conn, err := dsmt.dc.getConnection(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}

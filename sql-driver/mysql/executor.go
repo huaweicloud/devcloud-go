@@ -20,6 +20,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
@@ -68,17 +69,16 @@ type executorResp struct {
 }
 
 type executor struct {
-	exclusives    map[datasource.DataSource]bool
-	retryTimes    int
-	retryDelay    int // ms
-	isSQLOnlyRead bool
+	exclusives sync.Map
+	retryTimes int
+	retryDelay int // ms
 }
 
 func newExecutor(retry *config.RetryConfiguration) *executor {
 	e := &executor{
 		retryTimes: defaultRetryTimes,
 		retryDelay: defaultRetryDelay,
-		exclusives: make(map[datasource.DataSource]bool),
+		exclusives: sync.Map{},
 	}
 	if retry != nil && retry.Times != "" {
 		if retryTimes, err := strconv.Atoi(retry.Times); err != nil {
@@ -96,31 +96,31 @@ func newExecutor(retry *config.RetryConfiguration) *executor {
 // from cluster datasource choose a node datasource
 func (e *executor) tryExecute(req *executorReq) *executorResp {
 	// insure parse sql only once
-	e.isSQLOnlyRead = util.IsOnlyRead(req.query)
+	isSQLOnlyRead := util.IsOnlyRead(req.query)
 	// route node datasource
 	clusterRuntimeCtx := &router.RuntimeContext{DataSource: req.dc.clusterDataSource}
 	routeAlgorithm := req.dc.clusterDataSource.RouterConfiguration.RouteAlgorithm
 	nodeTargetDataSource := router.NewClusterRouter(routeAlgorithm).Route(
-		e.isSQLOnlyRead, clusterRuntimeCtx, map[datasource.DataSource]bool{})
+		isSQLOnlyRead, clusterRuntimeCtx, map[datasource.DataSource]bool{})
 	if nodeTargetDataSource == nil {
 		return &executorResp{err: errNoDatasource}
 	}
-	return e.tryNodeExecute(req, nodeTargetDataSource)
+	return e.tryNodeExecute(req, nodeTargetDataSource, isSQLOnlyRead)
 }
 
 // from node datasource choose an actual datasource to execute connection or statement method.
-func (e *executor) tryNodeExecute(req *executorReq, nodeTargetDataSource datasource.DataSource) *executorResp {
+func (e *executor) tryNodeExecute(req *executorReq, nodeTargetDataSource datasource.DataSource,
+	isSQLOnlyRead bool) *executorResp {
 	var resp = &executorResp{}
 nodeRetry:
 	for {
 		nodeRuntimeCtx := &router.RuntimeContext{
-			DataSource:            nodeTargetDataSource,
-			IsBeginTransaction:    req.dc.tranHolder.isBeginTransaction,
-			IsTransactionReadOnly: req.dc.tranHolder.isTransactionReadOnly,
-			RequestId:             idGenerator.Generate().Int64(),
+			DataSource:    nodeTargetDataSource,
+			InTransaction: req.dc.inTransaction,
+			RequestId:     idGenerator.Generate().Int64(),
 		}
 		actualExclusives := e.filterExclusive()
-		targetDataSource := router.NewNodeRouter().Route(e.isSQLOnlyRead, nodeRuntimeCtx, actualExclusives)
+		targetDataSource := router.NewNodeRouter().Route(isSQLOnlyRead, nodeRuntimeCtx, actualExclusives)
 		if targetDataSource == nil {
 			break
 		}
@@ -141,7 +141,7 @@ nodeRetry:
 				// remove actualTargetDataSource from exclusives if exists
 				actualTargetDataSource.Available = true
 				actualTargetDataSource.RetryTimes = 0
-				delete(e.exclusives, actualTargetDataSource)
+				e.exclusives.Delete(actualTargetDataSource)
 				return resp
 			case resp.err == driver.ErrSkip: // when conn.QueryContext with args, db will return driver.ErrSkip to continue
 				break nodeRetry
@@ -152,7 +152,7 @@ nodeRetry:
 			default:
 				break retry
 			}
-			delete(req.dc.cachedConn, actualTargetDataSource.Dsn)
+			req.dc.cachedConn.Delete(actualTargetDataSource.Dsn)
 			log.Printf("WARNING: execute '%s' failed, retried times %d", req.methodName, times)
 			time.Sleep(time.Millisecond * time.Duration(e.retryDelay))
 		}
@@ -163,16 +163,13 @@ nodeRetry:
 }
 
 func (e *executor) addExclusives(req *executorReq, actualTargetDataSource *datasource.ActualDataSource) {
-	delete(req.dc.cachedConn, actualTargetDataSource.Dsn)
+	req.dc.cachedConn.Delete(actualTargetDataSource.Dsn)
 	if req.dsmt != nil {
 		req.dsmt.stmt = nil
 	}
-	if req.dc.tranHolder.isInTransaction {
-		req.dc.tranHolder.conn = nil
-	}
 	actualTargetDataSource.Available = false
 	actualTargetDataSource.RetryTimes = e.retryTimes
-	e.exclusives[actualTargetDataSource] = true
+	e.exclusives.Store(actualTargetDataSource, true)
 }
 
 // execute directly if the actual datasource is available
@@ -185,10 +182,8 @@ func (e *executor) execute(req *executorReq, dsn string) *executorResp {
 		numInput int
 		err      error
 	)
-	if req.dc != nil {
-		if conn, err = req.dc.getConnection(req.ctx, dsn, req.dc.tranHolder.isBeginTransaction, req.dc.tranHolder.isInTransaction); err != nil {
-			return &executorResp{err: err}
-		}
+	if conn, err = req.dc.getConnection(req.ctx, dsn); err != nil {
+		return &executorResp{err: err}
 	}
 	switch req.methodName {
 	// conn methods
@@ -231,12 +226,13 @@ func (e *executor) execute(req *executorReq, dsn string) *executorResp {
 // filterExclusive remove data sources that have been recovered and can be retried from the blacklist
 func (e *executor) filterExclusive() map[datasource.DataSource]bool {
 	actualExclusives := map[datasource.DataSource]bool{}
-	for exclusive := range e.exclusives {
-		actual, ok := exclusive.(*datasource.ActualDataSource)
+	e.exclusives.Range(func(key, value interface{}) bool {
+		actual, ok := key.(*datasource.ActualDataSource)
 		if !ok || time.Now().UnixNano()/1e6-actual.LastRetryTime < exclusiveRetryDelay {
 			actualExclusives[actual] = true
 		}
-	}
+		return true
+	})
 	return actualExclusives
 }
 
