@@ -30,8 +30,7 @@ type devsporeConnector struct {
 func (c *devsporeConnector) Connect(ctx context.Context) (driver.Conn, error) {
 	return &devsporeConn{
 		clusterDataSource: c.clusterDataSource,
-		tranHolder:        &transactionHolder{},
-		cachedConn:        map[string]driver.Conn{},
+		inTransaction:     false,
 	}, nil
 }
 

@@ -28,8 +28,7 @@ type Router interface {
 }
 
 type RuntimeContext struct {
-	DataSource            datasource.DataSource
-	IsBeginTransaction    bool
-	IsTransactionReadOnly bool
-	RequestId             int64
+	DataSource    datasource.DataSource
+	InTransaction bool
+	RequestId     int64
 }

@@ -98,7 +98,7 @@ func TestNodeRouteStrategy_InsertWithSlave(t *testing.T) {
 	assert.Equal(t, nodeDataSource.MasterDataSource, targetDataSource)
 }
 
-func TestNodeRouteStrategy_Transaction_OnlyRead_WithSlave(t *testing.T) {
+func TestNodeRouteStrategy_Transaction(t *testing.T) {
 	nodeDataSource := &datasource.NodeDataSource{
 		Name:             "c0",
 		MasterDataSource: datasource.NewActualDataSource("master", nil),
@@ -107,34 +107,7 @@ func TestNodeRouteStrategy_Transaction_OnlyRead_WithSlave(t *testing.T) {
 			datasource.NewActualDataSource("slave1", nil)},
 		LoadBalanceAlgorithm: datasource.AlgorithmLoader("RANDOM"),
 	}
-	runtimeCtx := &RuntimeContext{DataSource: nodeDataSource, IsBeginTransaction: true, IsTransactionReadOnly: true}
-	targetDataSource := NewNodeRouter().Route(false, runtimeCtx, make(map[datasource.DataSource]bool))
-	assert.NotNil(t, targetDataSource)
-	assert.NotEqual(t, nodeDataSource.MasterDataSource, targetDataSource)
-}
-
-func TestNodeRouteStrategy_Transaction_OnlyRead_WithoutSlave(t *testing.T) {
-	nodeDataSource := &datasource.NodeDataSource{
-		Name:                 "c0",
-		MasterDataSource:     datasource.NewActualDataSource("master", nil),
-		LoadBalanceAlgorithm: datasource.AlgorithmLoader("RANDOM"),
-	}
-	runtimeCtx := &RuntimeContext{DataSource: nodeDataSource, IsBeginTransaction: true, IsTransactionReadOnly: true}
-	targetDataSource := NewNodeRouter().Route(false, runtimeCtx, make(map[datasource.DataSource]bool))
-	assert.NotNil(t, targetDataSource)
-	assert.Equal(t, nodeDataSource.MasterDataSource, targetDataSource)
-}
-
-func TestNodeRouteStrategy_Transaction_WithSlave(t *testing.T) {
-	nodeDataSource := &datasource.NodeDataSource{
-		Name:             "c0",
-		MasterDataSource: datasource.NewActualDataSource("master", nil),
-		SlavesDatasource: []*datasource.ActualDataSource{
-			datasource.NewActualDataSource("slave0", nil),
-			datasource.NewActualDataSource("slave1", nil)},
-		LoadBalanceAlgorithm: datasource.AlgorithmLoader("RANDOM"),
-	}
-	runtimeCtx := &RuntimeContext{DataSource: nodeDataSource, IsBeginTransaction: true}
+	runtimeCtx := &RuntimeContext{DataSource: nodeDataSource, InTransaction: true}
 	targetDataSource := NewNodeRouter().Route(false, runtimeCtx, make(map[datasource.DataSource]bool))
 	assert.NotNil(t, targetDataSource)
 	assert.Equal(t, nodeDataSource.MasterDataSource, targetDataSource)

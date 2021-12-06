@@ -27,8 +27,7 @@ type NodeRouteStrategy struct {
 // Decorate implements RouteStrategy
 func (ns *NodeRouteStrategy) Decorate(isSQLOnlyRead bool, runtimeCtx *RuntimeContext, exclusives map[datasource.DataSource]bool) datasource.DataSource {
 	if nodeDataSource, ok := runtimeCtx.DataSource.(*datasource.NodeDataSource); ok {
-		actualDataSource := ns.choose(nodeDataSource, exclusives, isSQLOnlyRead,
-			runtimeCtx.IsBeginTransaction, runtimeCtx.IsTransactionReadOnly, runtimeCtx.RequestId)
+		actualDataSource := ns.choose(nodeDataSource, exclusives, isSQLOnlyRead, runtimeCtx.InTransaction, runtimeCtx.RequestId)
 		if _, exist := exclusives[actualDataSource]; !exist {
 			return actualDataSource
 		}
@@ -41,9 +40,8 @@ func (ns *NodeRouteStrategy) Decorate(isSQLOnlyRead bool, runtimeCtx *RuntimeCon
 // The write operation or transaction select master datasource, and the read operation is select from slaves datasource
 // according to the load balancing algorithm. when transaction is readOnly, then select a slave datasource
 func (ns *NodeRouteStrategy) choose(dataSource *datasource.NodeDataSource, exclusives map[datasource.DataSource]bool,
-	isSQLOnlyRead, isBeginTransaction, isTransactionReadOnly bool, requestId int64) *datasource.ActualDataSource {
-	if isBeginTransaction && isTransactionReadOnly {
-	} else if !isSQLOnlyRead || len(dataSource.SlavesDatasource) == 0 {
+	isSQLOnlyRead, inTransaction bool, requestId int64) *datasource.ActualDataSource {
+	if inTransaction || !isSQLOnlyRead || len(dataSource.SlavesDatasource) == 0 {
 		return dataSource.MasterDataSource
 	}
 
