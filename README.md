@@ -1,7 +1,7 @@
 # Devcloud-go
 
-Devcloud-go provides a sql-driver for mysql which named devspore driver and a redis client which named devspore client, you can use them with MAS or use them separately. 
-The devspore driver is developed based on [go-sql-driver/mysql v1.6.0](https://github.com/go-sql-driver/mysql), the devspore client is developed based on [go-redis v8.11.3](https://github.com/go-redis/redis).  
+Devcloud-go provides a sql-driver for mysql and a redis client, you can use them with MAS or use them separately. 
+The driver is developed based on [go-sql-driver/mysql v1.6.0](https://github.com/go-sql-driver/mysql), the redis client is developed based on [go-redis v8.11.3](https://github.com/go-redis/redis).  
 This document introduces how to obtain and use Devcloud-go.
 ***
 ## Requirements
