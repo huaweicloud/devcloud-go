@@ -44,7 +44,8 @@ func (ls *LocationBaseClusterRouteStrategy) choose(isSQLOnlyRead bool,
 				return nodeDataSource
 			}
 		}
-	} else if nodeDataSource, ok := clusterDataSource.DataSources[clusterDataSource.Active]; ok {
+	}
+	if nodeDataSource, ok := clusterDataSource.DataSources[clusterDataSource.Active]; ok {
 		return nodeDataSource
 	}
 	return nil
