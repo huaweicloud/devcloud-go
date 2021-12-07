@@ -46,10 +46,11 @@ func TestLocationBaseClusterRouteStrategy_ReadSQL(t *testing.T) {
 	assert.NotNil(t, targetDataSource)
 	assert.Equal(t, node1, targetDataSource)
 
-	// change region "az2" which has nothing
+	// change region "az2" which has nothing, then should return active node
 	clusterDataSource.Region = "az2"
 	targetDataSource = NewClusterRouter("local-read-single-write").Route(true, runtimeCtx, make(map[datasource.DataSource]bool))
-	assert.Nil(t, targetDataSource)
+	assert.NotNil(t, targetDataSource)
+	assert.Equal(t, node1, targetDataSource)
 }
 
 func TestLocationBaseClusterRouteStrategy_InsertSQL(t *testing.T) {
