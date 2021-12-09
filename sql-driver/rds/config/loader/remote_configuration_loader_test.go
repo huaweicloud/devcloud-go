@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/huaweicloud/devcloud-go/common/etcd"
+	"github.com/huaweicloud/devcloud-go/common/etcd/mocks"
 	"github.com/huaweicloud/devcloud-go/mas"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
 	"github.com/stretchr/testify/assert"
@@ -50,16 +51,10 @@ var (
 
 // TestRemoteConfigurationLoader_GetConfiguration need an actual etcd address.
 func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
-	loader := NewRemoteConfigurationLoader(props, etcdConfiguration)
-	createRemoteConfiguration(loader)
-	loader.Init()
-	defer func() {
-		err := loader.Close()
-		if err != nil {
-			t.Errorf("close remote configuration loader err, %v", err)
-		}
-	}()
-
+	loader := NewRemoteConfigurationLoader(props, nil)
+	mockClient := &mocks.EtcdClient{}
+	loader.etcdClient = mockClient
+	createRemoteConfiguration(mockClient, loader)
 	remoteConfiguration := loader.GetConfiguration(props.CalHashCode())
 	assert := assert.New(t)
 	assert.NotNil(remoteConfiguration)
@@ -103,30 +98,19 @@ func TestGetConfigurationFromCache(t *testing.T) {
 
 }
 
-func createRemoteConfiguration(loader *RemoteConfigurationLoader) {
-	client := loader.etcdClient
+func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfigurationLoader) {
 	datasourceStr, err := json.Marshal(dataSources)
 	if err != nil {
 		log.Printf("json marshal datasources failed, err %v", err)
 	}
-	_, err = client.Put(loader.dataSourceKey, string(datasourceStr))
-	if err != nil {
-		log.Printf("etcd put datasource failed, err %v", err)
-	}
+	mockClient.On("Get", loader.dataSourceKey).Return(string(datasourceStr), nil).Once()
 
 	routerConfigStr, err := json.Marshal(routerConfig)
 	if err != nil {
 		log.Printf("json marshal routerConfig failed, err %v", err)
 	}
-	_, err = client.Put(loader.routerKey, string(routerConfigStr))
-	if err != nil {
-		log.Printf("etcd put routerConfig failed, err %v", err)
-	}
-
-	_, err = client.Put(loader.activeKey, "c1")
-	if err != nil {
-		log.Printf("etcd put active failed, err %v", err)
-	}
+	mockClient.On("Get", loader.routerKey).Return(string(routerConfigStr), nil).Once()
+	mockClient.On("Get", loader.activeKey).Return("c1", nil).Once()
 }
 
 func TestListener(t *testing.T) {

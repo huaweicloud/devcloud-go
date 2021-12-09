@@ -16,8 +16,15 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 
+	sqle "github.com/dolthub/go-mysql-server"
+	"github.com/dolthub/go-mysql-server/auth"
+	"github.com/dolthub/go-mysql-server/memory"
+	"github.com/dolthub/go-mysql-server/server"
+	mocksql "github.com/dolthub/go-mysql-server/sql"
+	"github.com/dolthub/go-mysql-server/sql/information_schema"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/datasource"
 	. "github.com/onsi/ginkgo"
@@ -36,6 +43,7 @@ var _ = Describe("CRUD", func() {
 		err        error
 		activeNode *datasource.NodeDataSource
 	)
+	go startMockServer()
 
 	BeforeEach(func() {
 		devsporeDB, err = sql.Open("devspore_mysql", "../rds/resources/driver_test_config.yaml")
@@ -138,4 +146,37 @@ func createTable(actualDataSource *datasource.ActualDataSource) error {
 		return err
 	}
 	return nil
+}
+
+const (
+	user    = "root"
+	passwd  = "root"
+	address = "127.0.0.1"
+	port    = "13306"
+)
+
+func startMockServer() {
+	engine := sqle.NewDefault(
+		mocksql.NewDatabaseProvider(
+			memory.NewDatabase("ds0"),
+			memory.NewDatabase("ds1"),
+			memory.NewDatabase("ds0-slave0"),
+			memory.NewDatabase("ds0-slave1"),
+			memory.NewDatabase("ds1-slave0"),
+			memory.NewDatabase("ds1-slave1"),
+			information_schema.NewInformationSchemaDatabase(),
+		))
+	serverConfig := server.Config{
+		Protocol: "tcp",
+		Address:  fmt.Sprintf("%s:%s", address, port),
+		Auth:     auth.NewNativeSingle(user, passwd, auth.AllPermissions),
+	}
+	s, err := server.NewDefaultServer(serverConfig, engine)
+	if err != nil {
+		panic(err)
+	}
+	go func() {
+		s.Start()
+	}()
+	fmt.Println("mysql-server started!")
 }
