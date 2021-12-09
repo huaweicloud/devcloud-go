@@ -25,6 +25,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
+//go:generate mockery -name=EtcdClient
 type EtcdClient interface {
 	Get(key string) (string, error)
 	Put(key, value string) (string, error)
