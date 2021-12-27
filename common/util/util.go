@@ -19,6 +19,7 @@ package util
 import (
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"strconv"
 	"strings"
@@ -60,4 +61,27 @@ func ConvertAddressStrToSlice(addressStr string) []string {
 		res = append(res, address)
 	}
 	return res
+}
+
+func MaxInt64(x, y int64) int64 {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+func GetNearest2Power(old int) int {
+	n := old - 1
+	n |= n >> 1
+	n |= n >> 2
+	n |= n >> 4
+	n |= n >> 8
+	n |= n >> 16
+	if n < 0 {
+		return 1
+	}
+	if n >= math.MaxInt32/2 {
+		return 1 << 30
+	}
+	return n + 1
 }

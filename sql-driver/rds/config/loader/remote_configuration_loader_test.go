@@ -49,7 +49,6 @@ var (
 	wrongEtcdAddress = "127.0.0.1:2380"
 )
 
-// TestRemoteConfigurationLoader_GetConfiguration need an actual etcd address.
 func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	loader := NewRemoteConfigurationLoader(props, nil)
 	mockClient := &mocks.EtcdClient{}
@@ -70,7 +69,10 @@ func TestGetConfigurationFromCache(t *testing.T) {
 	handler := NewConfigurationFileHandler()
 	// remove defaultCacheConfigFile if exists
 	if _, err := os.Stat(handler.cacheFilePath); err == nil {
-		os.Remove(handler.cacheFilePath)
+		if err = os.Remove(handler.cacheFilePath); err != nil {
+			t.Log("remove cache file failed")
+			return
+		}
 	}
 	handler.Save(&config.RemoteClusterConfiguration{
 		DataSources:  dataSources,
@@ -113,6 +115,7 @@ func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfi
 	mockClient.On("Get", loader.activeKey).Return("c1", nil).Once()
 }
 
+// TestListener need actual etcd address
 func TestListener(t *testing.T) {
 	loader := NewRemoteConfigurationLoader(props, etcdConfiguration)
 	loader.Init()
