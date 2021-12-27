@@ -43,6 +43,7 @@ const (
 type ConfigurationFileHandler struct {
 	cacheFilePath string
 	cacheFileLock *sync.Mutex
+	cacheFileDir  string
 }
 
 func NewConfigurationFileHandler() *ConfigurationFileHandler {
@@ -51,6 +52,7 @@ func NewConfigurationFileHandler() *ConfigurationFileHandler {
 	return &ConfigurationFileHandler{
 		cacheFilePath: cacheFilePath,
 		cacheFileLock: &sync.Mutex{},
+		cacheFileDir:  homeDir,
 	}
 }
 
@@ -76,6 +78,9 @@ func (h *ConfigurationFileHandler) Save(config *config.RemoteClusterConfiguratio
 func (h *ConfigurationFileHandler) doWrite(config *config.RemoteClusterConfiguration, hashCode string) error {
 	cfgStr, err := json.Marshal(config)
 	if err != nil {
+		return err
+	}
+	if err = os.MkdirAll(h.cacheFileDir, cacheFilePerm); err != nil {
 		return err
 	}
 	if err = ioutil.WriteFile(h.getCompleteCacheFilePath(hashCode), cfgStr, cacheFilePerm); err != nil {

@@ -98,7 +98,10 @@ func TestConfigurationFileHandler_Save(t *testing.T) {
 	handler := NewConfigurationFileHandler()
 	// remove defaultCacheConfigFile if exists
 	if _, err := os.Stat(handler.cacheFilePath); err == nil {
-		os.Remove(handler.cacheFilePath)
+		if err = os.Remove(handler.cacheFilePath); err != nil {
+			t.Log("remove cache file failed")
+			return
+		}
 	}
 	// test save
 	handler.Save(remoteClusterConfiguration, testHashCode)
@@ -114,7 +117,10 @@ func TestConfigurationFileHandler_Save(t *testing.T) {
 	configuration := handler.Load(testHashCode)
 	assertions.Equal(6, len(configuration.DataSources))
 	assertions.Equal(2, len(configuration.RouterConfig.Nodes))
-	os.Remove(cacheFilePath)
+	if err := os.Remove(cacheFilePath); err != nil {
+		t.Log("remove cache file failed")
+		return
+	}
 	t.Log("OK")
 }
 
@@ -123,7 +129,10 @@ func TestConfigurationFileHandler_LoadFailed(t *testing.T) {
 	homeDir := getHomeDir() + string(os.PathSeparator) + ".devspore" + string(os.PathSeparator)
 	cacheFilePath := homeDir + "remote-config-test_hashCode.json"
 	if _, err := os.Stat(cacheFilePath); err == nil {
-		os.Remove(cacheFilePath)
+		if err = os.Remove(cacheFilePath); err != nil {
+			t.Log("remove cache file failed")
+			return
+		}
 	}
 	handler := NewConfigurationFileHandler()
 	cacheConfig := handler.Load(testHashCode)
