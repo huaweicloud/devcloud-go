@@ -1,3 +1,8 @@
+#### 2022-01-04
+version: github.com/huaweicloud/devcloud-go v0.1.1  
+feature:
+1. mock package add etcd mock, replace test cases that rely on real etcd.
+
 #### 2021-12-27
 version: github.com/huaweicloud/devcloud-go v0.1.0  
 feature:

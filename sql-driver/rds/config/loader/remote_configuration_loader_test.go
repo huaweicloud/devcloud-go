@@ -19,11 +19,11 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/huaweicloud/devcloud-go/common/etcd"
 	"github.com/huaweicloud/devcloud-go/common/etcd/mocks"
 	"github.com/huaweicloud/devcloud-go/mas"
+	"github.com/huaweicloud/devcloud-go/mock"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,18 +35,12 @@ const (
 )
 
 var (
-	etcdConfiguration = &etcd.EtcdConfiguration{
-		Address:     "127.0.0.1:2379",
-		Username:    "root",
-		Password:    "123456",
-		HTTPSEnable: false,
-	}
 	props = &mas.PropertiesConfiguration{
 		AppID:        appId,
 		MonitorID:    monitorId,
 		DatabaseName: databaseName,
 	}
-	wrongEtcdAddress = "127.0.0.1:2380"
+	wrongEtcdAddress = "127.0.0.1:2381"
 )
 
 func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
@@ -55,14 +49,15 @@ func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	loader.etcdClient = mockClient
 	createRemoteConfiguration(mockClient, loader)
 	remoteConfiguration := loader.GetConfiguration(props.CalHashCode())
-	assert := assert.New(t)
-	assert.NotNil(remoteConfiguration)
-	assert.NotNil(remoteConfiguration.DataSources)
-	assert.Equal(len(remoteConfiguration.DataSources), 6)
-	assert.NotNil(remoteConfiguration.RouterConfig)
+	assert.NotNil(t, remoteConfiguration)
+	assert.NotNil(t, remoteConfiguration.DataSources)
+	assert.Equal(t, len(remoteConfiguration.DataSources), 6)
+	assert.NotNil(t, remoteConfiguration.RouterConfig)
 	_, ok := remoteConfiguration.DataSources["ds0"]
-	assert.True(ok)
-	return
+	assert.True(t, ok)
+
+	err := removeTempFile(props.CalHashCode())
+	assert.Nil(t, err)
 }
 
 func TestGetConfigurationFromCache(t *testing.T) {
@@ -78,7 +73,7 @@ func TestGetConfigurationFromCache(t *testing.T) {
 		DataSources:  dataSources,
 		RouterConfig: routerConfig}, props.CalHashCode())
 
-	wrongEtcdConfiguration := etcdConfiguration
+	wrongEtcdConfiguration := getEtcdConfiguration()
 	wrongEtcdConfiguration.Address = wrongEtcdAddress
 	loader := NewRemoteConfigurationLoader(props, wrongEtcdConfiguration)
 	loader.Init()
@@ -90,14 +85,15 @@ func TestGetConfigurationFromCache(t *testing.T) {
 	}()
 
 	localConfiguration := loader.GetConfiguration(props.CalHashCode())
-	assert := assert.New(t)
-	assert.NotNil(localConfiguration)
-	assert.NotNil(localConfiguration.DataSources)
-	assert.Equal(len(localConfiguration.DataSources), 6)
-	assert.NotNil(localConfiguration.RouterConfig)
+	assert.NotNil(t, localConfiguration)
+	assert.NotNil(t, localConfiguration.DataSources)
+	assert.Equal(t, len(localConfiguration.DataSources), 6)
+	assert.NotNil(t, localConfiguration.RouterConfig)
 	_, ok := localConfiguration.DataSources["ds0"]
-	assert.True(ok)
+	assert.True(t, ok)
 
+	err := removeTempFile(props.CalHashCode())
+	assert.Nil(t, err)
 }
 
 func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfigurationLoader) {
@@ -117,22 +113,29 @@ func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfi
 
 // TestListener need actual etcd address
 func TestListener(t *testing.T) {
-	loader := NewRemoteConfigurationLoader(props, etcdConfiguration)
+	dataDir := "etcd_data"
+	defer os.RemoveAll(dataDir)
+	metadata := mock.NewEtcdMetadata()
+	metadata.DataDir = dataDir
+	mockEtcd := &mock.MockEtcd{}
+	mockEtcd.StartMockEtcd(metadata)
+	defer mockEtcd.StopMockEtcd()
+
+	loader := NewRemoteConfigurationLoader(props, getEtcdConfiguration())
 	loader.Init()
+	defer loader.Close()
 
 	loader.AddRouterListener(&mockListener{})
-	time.Sleep(1 * time.Second)
-	for i := 0; i < 10; i++ {
-		if err := modifyRouterConfig(); err != nil {
-			t.Errorf("modify router config failed, err %s", err)
-		}
-		time.Sleep(time.Second)
-	}
-	time.Sleep(100 * time.Second)
+	err := modifyRouterConfig()
+	assert.Nil(t, err)
+
+	active, err := loader.etcdClient.Get(loader.activeKey)
+	assert.Nil(t, err)
+	assert.NotNil(t, active)
 }
 
 func modifyRouterConfig() error {
-	loader := NewRemoteConfigurationLoader(props, etcdConfiguration)
+	loader := NewRemoteConfigurationLoader(props, getEtcdConfiguration())
 	client := loader.etcdClient
 	val, err := client.Get(loader.activeKey)
 	if err != nil {
@@ -144,18 +147,28 @@ func modifyRouterConfig() error {
 	} else {
 		newVal = "c0"
 	}
-	resp, err := client.Put(loader.activeKey, newVal)
-	if err != nil {
-		return err
-	}
-	log.Printf("previous value is %v\n", resp)
-	return nil
+	_, err = client.Put(loader.activeKey, newVal)
+	return err
 }
 
 type mockListener struct {
 }
 
 func (m *mockListener) OnChanged(config *config.RouterConfiguration) {
-	log.Printf("active node:%v", config.Active)
-	println("mockListener onchanged")
+	log.Printf("change active node to:%v", config.Active)
+}
+
+func getEtcdConfiguration() *etcd.EtcdConfiguration {
+	return &etcd.EtcdConfiguration{
+		Address:     "127.0.0.1:2379",
+		Username:    "root",
+		Password:    "root",
+		HTTPSEnable: false,
+	}
+}
+
+func removeTempFile(fileHashCode string) error {
+	fileHandler := NewConfigurationFileHandler()
+	filePath := fileHandler.getCompleteCacheFilePath(fileHashCode)
+	return os.RemoveAll(filePath)
 }
