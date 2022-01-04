@@ -17,9 +17,12 @@ package etcd
 import (
 	"fmt"
 	"log"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/huaweicloud/devcloud-go/mock"
+	"github.com/stretchr/testify/assert"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -28,7 +31,7 @@ var (
 	props = &ClientProperties{
 		Endpoints:          []string{"127.0.0.1:2379"},
 		UserName:           "root",
-		Password:           "123456",
+		Password:           "root",
 		NeedAuthentication: true,
 	}
 	key = "etcd_test_key"
@@ -37,19 +40,23 @@ var (
 
 // TestEtcdV3Client test etcd put, get, del and watch operations
 func TestEtcdV3Client(t *testing.T) {
+	dataDir := "etcd_data"
+	defer os.RemoveAll(dataDir)
+	metadata := mock.NewEtcdMetadata()
+	metadata.DataDir = dataDir
+	mockEtcd := &mock.MockEtcd{}
+	mockEtcd.StartMockEtcd(metadata)
+	defer mockEtcd.StopMockEtcd()
+
 	client, err := NewEtcdV3Client(props)
 	if err != nil {
 		t.Errorf("create etcd client err, %v", err.Error())
 		return
 	}
-
-	t.Logf("create client success, client info: %+v", client)
-
+	println("create client success!")
 	// watch key
 	go client.Watch(key, 0, watchOnEvent)
-
 	time.Sleep(time.Second)
-
 	// test put
 	putResp, err := client.Put(key, val)
 	if err != nil {
@@ -59,33 +66,22 @@ func TestEtcdV3Client(t *testing.T) {
 	if putResp != "" {
 		t.Logf("put etcd k:%s, v:%s, previous value is :%s", key, val, putResp)
 	}
-
 	// test get
 	getResp, err := client.Get(key)
 	if err != nil {
 		t.Errorf("get etcd key:%s failed, err:%v\n", key, err)
 		return
 	}
-	if getResp != val {
-		t.Errorf("want value is %s, return value is :%s", val, getResp)
-	}
-
+	assert.Equal(t, val, getResp)
+	// test list
+	listResp, err := client.List("")
+	assert.Equal(t, 1, len(listResp))
 	// test delete
-	delResp, err := client.Del(key)
-	if err != nil {
-		t.Errorf("del etcd key:%s failed, err:%v\n", key, err)
-	}
-	t.Logf("del resp is:%v", delResp)
+	_, err = client.Del(key)
+	assert.Nil(t, err)
 
-	listResp, err := client.List("/a")
-	for i, resp := range listResp {
-		t.Logf("list %d, resp:%v", i, *resp)
-	}
-	time.Sleep(time.Second)
-
-	client.Close()
-
-	time.Sleep(time.Second)
+	err = client.Close()
+	assert.Nil(t, err)
 }
 
 func watchOnEvent(event *clientv3.Event) {

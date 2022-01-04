@@ -16,7 +16,9 @@ require (
 	github.com/onsi/gomega v1.15.0
 	github.com/panjf2000/ants/v2 v2.4.7
 	github.com/stretchr/testify v1.7.0
-	go.etcd.io/etcd/client/v3 v3.5.0
+	go.etcd.io/etcd/api/v3 v3.5.1
+	go.etcd.io/etcd/client/v3 v3.5.1
+	go.etcd.io/etcd/server/v3 v3.5.1
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
