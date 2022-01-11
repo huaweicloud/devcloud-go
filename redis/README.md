@@ -108,11 +108,11 @@ redis:
         minIdle: 0
         maxWaitMillis: 10000
         timeBetweenEvictionRunsMillis: 1000
-routeAlgorithm: local-read-async-double-write  # local-read-async-double-write, single-read-write
+routeAlgorithm: local-read-single-write  # local-read-single-write, single-read-write, double-write
 active: dc1
 ```
 ### Testing
-commands_test.go needs redis 6.2.0+, so if your redis is redis 5.0+, you need to execute 
+package commands_test needs redis 6.2.0+, so if your redis is redis 5.0+, you need to execute 
 ```bigquery
 ginkgo -skip="redis6" 
 ```

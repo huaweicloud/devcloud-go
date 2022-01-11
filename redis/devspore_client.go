@@ -21,10 +21,12 @@ package redis
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/huaweicloud/devcloud-go/redis/config"
+	"github.com/huaweicloud/devcloud-go/redis/strategy"
 )
 
 // DevsporeClient implements go-redis/UniversalClient interface which defines all redis commands, DevsporeClient includes
@@ -32,7 +34,7 @@ import (
 type DevsporeClient struct {
 	ctx           context.Context
 	configuration *config.Configuration
-	clientPool    map[string]redis.UniversalClient
+	strategy      strategy.StrategyMode
 }
 
 // NewDevsporeClientWithYaml create a devsporeClient with yaml configuration.
@@ -42,81 +44,57 @@ func NewDevsporeClientWithYaml(yamlFilePath string) *DevsporeClient {
 		log.Fatalf("ERROR: create DevsporeClient failed, err [%v]", err)
 		return nil
 	}
-	if err = config.ValidateConfiguration(configuration); err != nil {
-		log.Fatalf("ERROR: configuration is invalid, config is [%+v], err [%v]", configuration, err)
-		return nil
-	}
-	configuration.AssignRemoteConfig()
-	configuration.ComputeNearestServer()
-	configuration.ConvertServerConfiguration()
-	return &DevsporeClient{
-		ctx:           context.Background(),
-		clientPool:    make(map[string]redis.UniversalClient),
-		configuration: configuration,
-	}
+	return NewDevsporeClient(configuration)
 }
 
 // NewDevsporeClient create a devsporeClient with Configuration which will assign etcd remote configuration.
 func NewDevsporeClient(configuration *config.Configuration) *DevsporeClient {
 	configuration.AssignRemoteConfig()
 	configuration.ComputeNearestServer()
+	configuration.ConvertServerConfiguration()
+	if err := validateConfiguration(configuration); err != nil {
+		log.Fatalf("ERROR: configration is invalid, config is [%+v], err [%v]", configuration, err)
+		return nil
+	}
 	return &DevsporeClient{
 		ctx:           context.Background(),
-		clientPool:    make(map[string]redis.UniversalClient),
+		strategy:      strategy.NewStrategy(configuration),
 		configuration: configuration,
-	}
-}
-
-func (c *DevsporeClient) getActualClient(opType commandType) redis.UniversalClient {
-	serverName := c.route(opType)
-	if client, ok := c.clientPool[serverName]; ok {
-		return client
-	}
-	if serverConfig, ok := c.configuration.RedisConfig.Servers[serverName]; ok && serverConfig != nil {
-		c.clientPool[serverName] = newClient(serverConfig)
-		return c.clientPool[serverName]
-	}
-	return nil
-}
-
-func newClient(serverConfig *config.ServerConfiguration) redis.UniversalClient {
-	switch serverConfig.Type {
-	case config.ServerTypeCluster:
-		return redis.NewClusterClient(serverConfig.ClusterOptions)
-	case config.ServerTypeNormal, config.ServerTypeMasterSlave:
-		return redis.NewClient(serverConfig.Options)
-	default:
-		log.Printf("WARNING: invalid server type '%s'", serverConfig.Type)
-		return redis.NewClient(serverConfig.Options)
-	}
-}
-
-const (
-	singleReadWrite      = "single-read-write"
-	localReadSingleWrite = "local-read-single-write"
-)
-
-func (c *DevsporeClient) route(opType commandType) string {
-	switch c.configuration.RouteAlgorithm {
-	case singleReadWrite:
-		return c.configuration.Active
-	case localReadSingleWrite:
-		if opType == commandTypeRead {
-			return c.configuration.RedisConfig.Nearest
-		}
-		return c.configuration.Active
-	default:
-		log.Printf("WARNING: invalid route algorithm '%s'", c.configuration.RouteAlgorithm)
-		c.configuration.RouteAlgorithm = singleReadWrite
-		return c.configuration.Active
 	}
 }
 
 // Close closes all clients in clientPool
 func (c *DevsporeClient) Close() error {
-	var err error
-	for _, client := range c.clientPool {
-		err = client.Close()
+	return c.strategy.Close()
+}
+
+// validateConfiguration check configuration is valid.
+func validateConfiguration(configuration *config.Configuration) error {
+	if configuration == nil {
+		return errors.New("configuration cannot be nil")
 	}
-	return err
+	if configuration.RedisConfig == nil {
+		return errors.New("redis config cannot be nil")
+	}
+	if configuration.RouteAlgorithm == "" {
+		return errors.New("router config cannot be null")
+	}
+	if configuration.EtcdConfig != nil {
+		if configuration.Props == nil {
+			return errors.New("props is required")
+		}
+		if configuration.Props.AppID == "" {
+			return errors.New("appId is required")
+		}
+		if configuration.Props.MonitorID == "" {
+			return errors.New("monitorId is required")
+		}
+	}
+	if configuration.RedisConfig.Servers == nil || len(configuration.RedisConfig.Servers) == 0 {
+		return errors.New("servers is required")
+	}
+	if configuration.RouteAlgorithm == strategy.DoubleWriteMode && configuration.RedisConfig.Nearest == "" {
+		return fmt.Errorf("routeAlgorithm: %s required nearest setting", strategy.DoubleWriteMode)
+	}
+	return nil
 }

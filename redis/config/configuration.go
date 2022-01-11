@@ -18,7 +18,6 @@
 package config
 
 import (
-	"errors"
 	"io/ioutil"
 	"path/filepath"
 
@@ -98,31 +97,6 @@ func (c *Configuration) ConvertServerConfiguration() {
 	for _, serverConfig := range c.RedisConfig.Servers {
 		serverConfig.convertOptions()
 	}
-}
-
-// ValidateConfiguration check configuration is valid.
-func ValidateConfiguration(configuration *Configuration) error {
-	if configuration == nil {
-		return errors.New("configuration cannot be nil")
-	}
-	if configuration.RedisConfig == nil {
-		return errors.New("redis config cannot be nil")
-	}
-	if configuration.RouteAlgorithm == "" {
-		return errors.New("router config cannot be null")
-	}
-	if configuration.EtcdConfig != nil {
-		if configuration.Props == nil {
-			return errors.New("props is required")
-		}
-		if configuration.Props.AppID == "" {
-			return errors.New("appId is required")
-		}
-		if configuration.Props.MonitorID == "" {
-			return errors.New("monitorId is required")
-		}
-	}
-	return nil
 }
 
 // LoadConfiguration generate Configuration form yaml configuration file.

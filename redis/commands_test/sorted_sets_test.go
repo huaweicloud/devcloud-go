@@ -115,7 +115,7 @@ var _ = Describe("Sorted Sets commands", func() {
 				defer GinkgoRecover()
 
 				started <- true
-				bZPopMax := sortedSetsClient.BZPopMax(ctx, 0, "zpopmax")
+				bZPopMax := sortedSetsClient.BZPopMax(ctx, 0, "zset")
 				Expect(bZPopMax.Err()).NotTo(HaveOccurred())
 				Expect(bZPopMax.Val()).To(Equal(zsetPop))
 				done <- true
@@ -129,7 +129,7 @@ var _ = Describe("Sorted Sets commands", func() {
 				// ok
 			}
 
-			zAdd := sortedSetsClient.ZAdd(ctx, "zpopmax", &redis.Z{
+			zAdd := sortedSetsClient.ZAdd(ctx, "zset", &redis.Z{
 				Member: "a",
 				Score:  1,
 			})

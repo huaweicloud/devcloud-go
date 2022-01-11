@@ -1,3 +1,7 @@
+#### 2022-01-11
+version: github.com/huaweicloud/devcloud-go v0.1.2
+1. package redis add "double-write" strategy mode.
+
 #### 2022-01-04
 version: github.com/huaweicloud/devcloud-go v0.1.1  
 feature:

@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/huaweicloud/devcloud-go/mock"
+	"github.com/huaweicloud/devcloud-go/redis/strategy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,7 +76,7 @@ func TestDevsporeClient_ReadWriteSeparated(t *testing.T) {
 	client.configuration.RedisConfig.Servers["dc1"].Options.Addr = addr1
 	client.configuration.RedisConfig.Servers["dc2"].Options.Addr = addr2
 
-	assert.Equal(t, localReadSingleWrite, client.configuration.RouteAlgorithm)
+	assert.Equal(t, strategy.LocalReadSingleWriteMode, client.configuration.RouteAlgorithm)
 	assert.Equal(t, "dc1", client.configuration.RedisConfig.Nearest)
 	assert.Equal(t, "dc2", client.configuration.Active)
 	ctx := context.Background()
