@@ -273,6 +273,64 @@ chaos:
 ```
 
 ### Description of Configuration Parameters
-|表头|表头|
-|-|-|
-![img.png](../../img/mysql-configuration.png)
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|props|PropertiesConfiguration|For details,see the description of the data structure of PropertiesConfiguration|Mas monitoring configuration,which is used together with etcd|
+|etcd|EtcdConfiguration|For details,see the description of the data structure of EtcdConfiguration|Etcd configuration.If it is configured, it will be pulled from the remote end|
+|datasource|map[string]DataSourceConfiguration|The key is customized,for details about a single dimension,see the description of the data structure of DataSourceConfiguration|DataSource|
+|router|RouterConfiguration|For details,see the description of the data structure of RouterConfiguration|Route-related configuration|
+|chaos|InjectionProperties|For details,see the description of the data structure of InjectionProperties|Fault Injection Configuration|
+
+PropertiesConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|version|string|-|Project version number|
+|appId|string|-|Project name|
+|monitorId|string|-|Monitoring group name|
+|databaseName|string|-|Database name|
+
+EtcdConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|address|string|-|Etcd address|
+|apiVersion|string|-|Etcd interface Version|
+|username|string|-|Etcd username|
+|password|string|-|Etcd password|
+|httpEnable|bool|-|Specifies whether HTTPS is enabled for Etcd|
+
+DataSourceConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|url|string|protocol(address)/dbname?param=value|Data Source Name|
+|username|string|-|username|
+|password|string|-|password|
+
+RouterConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|active|string|Key of the node|Activating Nodes|
+|routeAlgorithm|string|single-read-write,local-read-single-write|Routing algorithm|
+|retry.times|string|-|Failed Retry Times|
+|retry.delay|string|-|Retry interval,in milliseconds|
+|nodes|map[string]NodeConfiguration|The key is customized,for details about a single dimension,see the description of the data structure of NodeConfiguration|Node-related configuration|
+
+NodeConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|master|string|key of the datasource|Master node datasource|
+|loadBalance|string|RANDOM,ROUND_ROBIN|Load balancing algorithm for read/write separation|
+|slaves|[]string|key of the datasource|Slave node datasource|
+
+InjectionProperties
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|active|bool|true/false|Whether the fault injection function is enabled|
+|duration|int|-|Fault injection duration,in seconds|
+|interval|int|-|Fault injection interval,in seconds|
+|percentage|int|0-100|Injection failure probability|
+|delayInjection.active|bool|true/false|Delay injection switch|
+|delayInjection.percentage|int|0-100|Delayed Fault Effective Probability|
+|delayInjection.timeMs|int|-|Indicates the delay base,in milliseconds|
+|delayInjection.jitterMs|int|-|Indicates the jitter amplitude of the delay, in milliseconds|
+|errorInjection.active|bool|true/false|Abnormal injection switch|
+|errorInjection.percentage|0-100|Abnormal Fault Effective Probability|

@@ -231,4 +231,82 @@ ginkgo -skip="redis6"
 See more usages of ginkgo in **https://github.com/onsi/ginkgo**
 
 ### Description of Configuration Parameters
-![img.png](../img/redis-configuration.png)
+
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|props|PropertiesConfiguration|For details,see the description of the data structure of PropertiesConfiguration|Mas monitoring configuration,which is used together with etcd|
+|etcd|EtcdConfiguration|For details,see the description of the data structure of EtcdConfiguration|Etcd configuration.If it is configured, it will be pulled from the remote end|
+|redis|RedisConfiguration|For details,see the description of the data structure of RedisConfiguration|RedisServer configuration|
+|routeAlgorithm|string|single-read-write,local-read-single-write,double-write|Routing algorithm|
+|active|string|The value can only be dc1 or dc2|Activated Redis|
+|chaos|InjectionProperties|For details,see the description of the data structure of InjectionProperties|Fault Injection Configuration|
+
+PropertiesConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|version|string|-|Project version number|
+|appId|string|-|Project name|
+|monitorId|string|-|Monitoring group name|
+|cloud|string|-|Project deployment cloud group|
+|region|string|-|Project deployment region
+|azs|string|-|Project deployment AZ|
+
+EtcdConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|address|string|-|Etcd address|
+|apiVersion|string|-|Etcd interface Version|
+|username|string|-|Etcd username|
+|password|string|-|Etcd password|
+|httpEnable|bool|-|Specifies whether HTTPS is enabled for Etcd|
+
+RedisConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|nearest|string|The value can only be dc1 or dc2|Indicates the local Redis|
+|asyncRemoteWrite.retryTimes|int|-|Number of retries of asynchronous remote write operations|
+|connectionPool.enable|bool|true/false|Indicates whether to enable the connection pool|
+|asyncRemotePool|AsyncRemotePoolConfiguration|For details,see the description of the data structure of AsyncRemotePoolConfiguration|Configure the asynchronous write thread pool|
+|servers|map[string]ServerConfiguration|The key is dc1/dc2.for details about a single dimension,see the description of the data structure of ServerConfiguration|RedisServer connection configuration of dc1 and dc2|
+
+AsyncRemotePoolConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|threadCoreSize|int|-|Basic size of the thread pool|
+|persist|bool|true/false|Indicates whether the command is persistent.No:The command is fast.Yes:The speed is lower than that of non-persistent|
+|taskQueueSize|int|-|Number of buffer queues|
+|persistDir|string|Default root directory "/"|Redis persistent file directory|
+
+ServerConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|hosts|string|-|RedisServer IP address|
+|password|string|-|RedisServer password|
+|type|string|cluster,master-slave,normal|RedisServer Type|
+|cloud|string|-|RedisServer cloud|
+|region|string|-|Region to which the RedisServer belongs|
+|azs|string|-|AZ to which RedisServer belongs|
+|pool|ServerConnectionPoolConfiguration|For details,see the description of the data structure of ServerConnectionPoolConfiguration|connection pool configuration|
+
+ServerConnectionPoolConfiguration
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|maxTotal|int|-|Maximum number of active objects|
+|maxIdle|int|-|Maximum number of objects that can remain in the idle state|
+|minIdle|int|-|Minimum number of objects that can remain in the idle state|
+|maxWaitMillis|int|-|Maximum wait time when no object is returned in the pool|
+|timeBetweenEvictionRunsMillis|int|-|Idle link detection thread,detection interval,in milliseconds.A negative value indicates that the detection thread is not running|
+
+InjectionProperties
+|Parameter Name|Parameter Type|Value range|Description|
+|-|-|-|-|
+|active|bool|true/false|Whether the fault injection function is enabled|
+|duration|int|-|Fault injection duration,in seconds|
+|interval|int|-|Fault injection interval,in seconds|
+|percentage|int|0-100|Injection failure probability|
+|delayInjection.active|bool|true/false|Delay injection switch|
+|delayInjection.percentage|int|0-100|Delayed Fault Effective Probability|
+|delayInjection.timeMs|int|-|Indicates the delay base,in milliseconds|
+|delayInjection.jitterMs|int|-|Indicates the jitter amplitude of the delay, in milliseconds|
+|errorInjection.active|bool|true/false|Abnormal injection switch|
+|errorInjection.percentage|0-100|Abnormal Fault Effective Probability|
