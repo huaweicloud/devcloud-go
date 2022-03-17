@@ -11,14 +11,15 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package config defines a series of devspore redis configuration, include configuration
- * from yaml and remote etcd.
  */
 
+/*
+Package config defines a series of devspore redis configuration, include configuration
+from yaml and remote etcd.
+*/
 package config
 
 import (
-	"errors"
 	"io/ioutil"
 	"path/filepath"
 
@@ -34,6 +35,7 @@ type Configuration struct {
 	RedisConfig    *RedisConfiguration          `yaml:"redis"`
 	RouteAlgorithm string                       `yaml:"routeAlgorithm"`
 	Active         string                       `yaml:"active"`
+	Chaos          *mas.InjectionProperties     `yaml:"chaos"`
 }
 
 // OnChanged when remote etcd active key changed, change the Configuration's active server.
@@ -98,31 +100,6 @@ func (c *Configuration) ConvertServerConfiguration() {
 	for _, serverConfig := range c.RedisConfig.Servers {
 		serverConfig.convertOptions()
 	}
-}
-
-// ValidateConfiguration check configuration is valid.
-func ValidateConfiguration(configuration *Configuration) error {
-	if configuration == nil {
-		return errors.New("configuration cannot be nil")
-	}
-	if configuration.RedisConfig == nil {
-		return errors.New("redis config cannot be nil")
-	}
-	if configuration.RouteAlgorithm == "" {
-		return errors.New("router config cannot be null")
-	}
-	if configuration.EtcdConfig != nil {
-		if configuration.Props == nil {
-			return errors.New("props is required")
-		}
-		if configuration.Props.AppID == "" {
-			return errors.New("appId is required")
-		}
-		if configuration.Props.MonitorID == "" {
-			return errors.New("monitorId is required")
-		}
-	}
-	return nil
 }
 
 // LoadConfiguration generate Configuration form yaml configuration file.

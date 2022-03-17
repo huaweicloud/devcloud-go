@@ -11,9 +11,9 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package mas contains mas properties configuration.
  */
 
+// Package mas contains mas properties configuration.
 package mas
 
 import "fmt"

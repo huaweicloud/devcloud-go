@@ -22,16 +22,19 @@ import (
 )
 
 type devsporeConnector struct {
+	executor          *executor
 	clusterDataSource *datasource.ClusterDataSource
 }
 
 // Connect implements driver.Connector interface.
 // Connect returns a devsporeConn.
 func (c *devsporeConnector) Connect(ctx context.Context) (driver.Conn, error) {
-	return &devsporeConn{
+	dc := &devsporeConn{
 		clusterDataSource: c.clusterDataSource,
 		inTransaction:     false,
-	}, nil
+		executor:          c.executor,
+	}
+	return dc, nil
 }
 
 // Driver implements driver.Connector interface, Driver returns &DevsporeDriver{}.

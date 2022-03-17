@@ -11,12 +11,14 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package datasource defines datasource interface, and implements the interface by ClusterDataSource,
- * NodeDataSource, and ActualDataSource. The ClusterDataSource have auto change target datasource capabilities,
- * NodeDatasource have read/write separation and failure retry capabilities, ActualDataSource is an actual
- * datasource which contains actual dsn.
  */
 
+/*
+Package datasource defines datasource interface, and implements the interface by ClusterDataSource,
+NodeDataSource, and ActualDataSource. The ClusterDataSource have auto change target datasource capabilities,
+NodeDatasource have read/write separation and failure retry capabilities, ActualDataSource is an actual
+datasource which contains actual dsn.
+*/
 package datasource
 
 import (

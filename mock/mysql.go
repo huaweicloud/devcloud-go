@@ -16,7 +16,6 @@
 package mock
 
 import (
-	"fmt"
 	"log"
 
 	sqle "github.com/dolthub/go-mysql-server"
@@ -27,56 +26,48 @@ import (
 	"github.com/dolthub/go-mysql-server/sql/information_schema"
 )
 
-type MysqlMetaData struct {
+type MysqlMock struct {
 	User         string
 	Password     string
 	Address      string
 	Databases    []string
 	MemDatabases []*memory.Database // see mysql_test.go Line#53-77
+	mysqlServer  *server.Server
 }
 
-var mysqlServers []*server.Server
-
-func StartMockMysql(metadata MysqlMetaData) {
+func (m *MysqlMock) StartMockMysql() error {
 	var databases = []sql.Database{information_schema.NewInformationSchemaDatabase()}
-	for _, db := range metadata.Databases {
+	for _, db := range m.Databases {
 		databases = append(databases, memory.NewDatabase(db))
 	}
-	for _, db := range metadata.MemDatabases {
+	for _, db := range m.MemDatabases {
 		databases = append(databases, db)
 	}
 	engine := sqle.NewDefault(sql.NewDatabaseProvider(databases...))
 	config := server.Config{
 		Protocol: "tcp",
-		Address:  metadata.Address,
-		Auth:     auth.NewNativeSingle(metadata.User, metadata.Password, auth.AllPermissions),
+		Address:  m.Address,
+		Auth:     auth.NewNativeSingle(m.User, m.Password, auth.AllPermissions),
 	}
-	s, err := server.NewDefaultServer(config, engine)
+	var err error
+	m.mysqlServer, err = server.NewDefaultServer(config, engine)
 	if err != nil {
 		log.Printf("ERROR: create mysql server failed, %v", err)
-		return
+		return err
 	}
 	go func() {
-		err = s.Start()
+		err = m.mysqlServer.Start()
 		if err != nil {
 			log.Printf("ERROR: start mysql server failed, %v", err)
 			return
 		}
 	}()
 
-	fmt.Println("mysql-server started!")
-	mysqlServers = append(mysqlServers, s)
-	return
+	log.Println("mysql-server started!")
+	return nil
 }
 
-func StopMockMysql() {
-	if len(mysqlServers) == 0 {
-		return
-	}
-	for _, s := range mysqlServers {
-		if err := s.Close(); err != nil {
-			log.Printf("ERROR: close mysql server [%s] failed, %v", s.Listener.Addr(), err)
-		}
-	}
-	fmt.Println("mysql-server stop!")
+func (m *MysqlMock) StopMockMysql() {
+	m.mysqlServer.Close()
+	log.Println("mysql-server stop!")
 }

@@ -49,6 +49,7 @@ func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	loader.etcdClient = mockClient
 	createRemoteConfiguration(mockClient, loader)
 	remoteConfiguration := loader.GetConfiguration(props.CalHashCode())
+
 	assert.NotNil(t, remoteConfiguration)
 	assert.NotNil(t, remoteConfiguration.DataSources)
 	assert.Equal(t, len(remoteConfiguration.DataSources), 6)
@@ -57,14 +58,23 @@ func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	assert.True(t, ok)
 
 	err := removeTempFile(props.CalHashCode())
+	if err != nil {
+		log.Println(err)
+	}
 	assert.Nil(t, err)
+}
+
+func removeTempFile(hashCode string) error {
+	fileHandler := NewConfigurationFileHandler()
+	filePath := fileHandler.getCompleteCacheFilePath(hashCode)
+	return os.RemoveAll(filePath)
 }
 
 func TestGetConfigurationFromCache(t *testing.T) {
 	handler := NewConfigurationFileHandler()
 	// remove defaultCacheConfigFile if exists
 	if _, err := os.Stat(handler.cacheFilePath); err == nil {
-		if err = os.Remove(handler.cacheFilePath); err != nil {
+		if err := os.Remove(handler.cacheFilePath); err != nil {
 			t.Log("remove cache file failed")
 			return
 		}
@@ -93,6 +103,9 @@ func TestGetConfigurationFromCache(t *testing.T) {
 	assert.True(t, ok)
 
 	err := removeTempFile(props.CalHashCode())
+	if err != nil {
+		log.Println(err)
+	}
 	assert.Nil(t, err)
 }
 
@@ -102,7 +115,6 @@ func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfi
 		log.Printf("json marshal datasources failed, err %v", err)
 	}
 	mockClient.On("Get", loader.dataSourceKey).Return(string(datasourceStr), nil).Once()
-
 	routerConfigStr, err := json.Marshal(routerConfig)
 	if err != nil {
 		log.Printf("json marshal routerConfig failed, err %v", err)
@@ -111,10 +123,14 @@ func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfi
 	mockClient.On("Get", loader.activeKey).Return("c1", nil).Once()
 }
 
-// TestListener need actual etcd address
 func TestListener(t *testing.T) {
 	dataDir := "etcd_data"
-	defer os.RemoveAll(dataDir)
+	defer func() {
+		err := os.RemoveAll(dataDir)
+		if err != nil {
+			log.Println("remove failed")
+		}
+	}()
 	metadata := mock.NewEtcdMetadata()
 	metadata.DataDir = dataDir
 	mockEtcd := &mock.MockEtcd{}
@@ -123,10 +139,16 @@ func TestListener(t *testing.T) {
 
 	loader := NewRemoteConfigurationLoader(props, getEtcdConfiguration())
 	loader.Init()
-	defer loader.Close()
+	defer func() {
+		err := loader.Close()
+		log.Println(err)
+	}()
 
 	loader.AddRouterListener(&mockListener{})
 	err := modifyRouterConfig()
+	if err != nil {
+		log.Println(err)
+	}
 	assert.Nil(t, err)
 
 	active, err := loader.etcdClient.Get(loader.activeKey)
@@ -148,6 +170,9 @@ func modifyRouterConfig() error {
 		newVal = "c0"
 	}
 	_, err = client.Put(loader.activeKey, newVal)
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -165,10 +190,4 @@ func getEtcdConfiguration() *etcd.EtcdConfiguration {
 		Password:    "root",
 		HTTPSEnable: false,
 	}
-}
-
-func removeTempFile(fileHashCode string) error {
-	fileHandler := NewConfigurationFileHandler()
-	filePath := fileHandler.getCompleteCacheFilePath(fileHashCode)
-	return os.RemoveAll(filePath)
 }

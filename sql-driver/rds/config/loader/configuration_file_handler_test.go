@@ -98,7 +98,7 @@ func TestConfigurationFileHandler_Save(t *testing.T) {
 	handler := NewConfigurationFileHandler()
 	// remove defaultCacheConfigFile if exists
 	if _, err := os.Stat(handler.cacheFilePath); err == nil {
-		if err = os.Remove(handler.cacheFilePath); err != nil {
+		if err := os.Remove(handler.cacheFilePath); err != nil {
 			t.Log("remove cache file failed")
 			return
 		}
@@ -129,7 +129,7 @@ func TestConfigurationFileHandler_LoadFailed(t *testing.T) {
 	homeDir := getHomeDir() + string(os.PathSeparator) + ".devspore" + string(os.PathSeparator)
 	cacheFilePath := homeDir + "remote-config-test_hashCode.json"
 	if _, err := os.Stat(cacheFilePath); err == nil {
-		if err = os.Remove(cacheFilePath); err != nil {
+		if err := os.Remove(cacheFilePath); err != nil {
 			t.Log("remove cache file failed")
 			return
 		}
