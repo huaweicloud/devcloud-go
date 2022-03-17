@@ -27,7 +27,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * 202.01.20-Adapt to Redis and MySQL fault injection, delete unnecessary functions
+ * 2022.01.20-Adapt to Redis and MySQL fault injection, delete unnecessary functions
  * add required logic.
  * 			Huawei Technologies Co., Ltd.
  */

@@ -99,7 +99,7 @@ type job struct {
 	args []interface{}
 }
 
-// asyncDoubleWrite Memory dual-write
+// asyncDoubleWrite Memory double-write
 func (d *DoubleWriteStrategy) asyncDoubleWrite() {
 	for jobs := range d.jobChan {
 		for i := 0; i < d.Configuration.RedisConfig.AsyncRemoteWrite.RetryTimes; i++ {
@@ -112,7 +112,7 @@ func (d *DoubleWriteStrategy) asyncDoubleWrite() {
 	}
 }
 
-// asyncWrite File dual-write
+// asyncWrite File double-write
 func (d *DoubleWriteStrategy) asyncWrite(dir string, clients map[string]redis.UniversalClient) {
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
@@ -126,14 +126,14 @@ func (d *DoubleWriteStrategy) asyncWrite(dir string, clients map[string]redis.Un
 	}
 }
 
-// createThreadPoolExecutor Memory dual-write buffer creation
+// createThreadPoolExecutor Memory double-write buffer creation
 func (d *DoubleWriteStrategy) createThreadPoolExecutor(configuration *config.AsyncRemotePoolConfiguration) {
 	if !configuration.Persist {
 		d.jobChan = make(chan job, configuration.TaskQueueSize)
 	}
 }
 
-// executeAsyncPersist Memory dual-write command writing
+// executeAsyncPersist Memory double-write command writing
 func (d *DoubleWriteStrategy) executeAsyncPersist(ctx context.Context, args []interface{}) {
 	var remotename string
 	nearest := d.Configuration.RedisConfig.Nearest
@@ -149,7 +149,7 @@ func (d *DoubleWriteStrategy) executeAsyncPersist(ctx context.Context, args []in
 	d.fileOperationMap[remotename].WriteFile(d.Configuration.RedisConfig.AsyncRemotePoolConfiguration.PersistDir+remotename, item)
 }
 
-// executeAsyncNotPersist File dual-write command writing
+// executeAsyncNotPersist File double-write command writing
 func (d *DoubleWriteStrategy) executeAsyncNotPersist(ctx context.Context, args []interface{}) {
 	d.jobChan <- job{ctx: ctx, args: args}
 }

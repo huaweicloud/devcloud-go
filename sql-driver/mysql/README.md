@@ -1,10 +1,10 @@
 # devcloud-go/sql-driver/mysql
 
 ###Introduction
-Currently, MySQL supports two modes.sing-read-write and local-read-single-write.
+Currently, MySQL supports two modes.single-read-write and local-read-single-write.
 In addition, read/write separation is supported, which can be configured as random or RoundRobin.
-##### sing-read-write
-![image](../../img/mysql-sing-read-write.png)
+##### single-read-write
+![image](../../img/mysql-single-read-write.png)
 ##### local-read-single-write
 ![image](../../img/mysql-local-read-single-write.png)
 ### Quickstart：
@@ -29,39 +29,39 @@ func main()  {
 }
 func devsporeConfiguration() *config.ClusterConfiguration {
     return &config.ClusterConfiguration{
-    	Props: &mas.PropertiesConfiguration{
-    		AppID:        "xxx",
-    		MonitorID:    "xxx",
-    		DatabaseName: "xx",
-    	},
+        Props: &mas.PropertiesConfiguration{
+            AppID:        "xxx",
+            MonitorID:    "xxx",
+            DatabaseName: "xx",
+        },
     	EtcdConfig: &etcd.EtcdConfiguration{
-    		Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
-    		Username:    "etcduser",
-    		Password:    "etcdpwd",
-    		HTTPSEnable: false,
+            Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
+            Username:    "etcduser",
+            Password:    "etcdpwd",
+            HTTPSEnable: false,
     	},
     	RouterConfig: &config.RouterConfiguration{
-    		Nodes: map[string]*config.NodeConfiguration{
-    			"dc1": {
-    				Master: "ds1",
-    			},
-    			"dc2": {
-    				Master: "ds2",
-    			},
-    		},
-    		Active: "dc1",
+            Nodes: map[string]*config.NodeConfiguration{
+                "dc1": {
+                    Master: "ds1",
+                },
+                "dc2": {
+                    Master: "ds2",
+                },
+            },
+            Active: "dc1",
     	},
     	DataSource: map[string]*config.DataSourceConfiguration{
-    		"ds1": {
-    			URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
-    			Username: "root",
-    			Password: "123456",
-    		},
-    		"ds2": {
-    			URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
-    			Username: "root",
-    			Password: "123456",
-    		},
+            "ds1": {
+                URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
+                Username: "root",
+                Password: "123456",
+            },
+            "ds2": {
+                URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
+                Username: "root",
+                Password: "123456",
+            },
     	},
     }
 }
@@ -113,19 +113,19 @@ import (
 )
 
 func main() {
-	// 注册devspore_mysql
-	err = orm.RegisterDriver("devspore_mysql", orm.DRMySQL)
+    // register devspore_mysql
+    err = orm.RegisterDriver("devspore_mysql", orm.DRMySQL)
     if err != nil {
-		log.Fatalln(err)
-	}
-	// 注册使用model
-	// orm.RegisterModel(new(interface{}),new(interface{}))
-
-	err = orm.RegisterDataBase("default", "devspore_mysql", "xxx/config_with_password.yaml")
+        log.Fatalln(err)
+    }
+    // register model
+    orm.RegisterModel(new(interface{}),new(interface{}))
+    
+    err = orm.RegisterDataBase("default", "devspore_mysql", "xxx/config_with_password.yaml")
     if err != nil {
-		log.Fatalln(err)
-	}
-	db:= orm.NewOrm()
+        log.Fatalln(err)
+    }
+    db:= orm.NewOrm()
     ......THEN 
 }
 
@@ -203,63 +203,63 @@ You can also create a database service with injection failures by adding configu
 ```bigquery
 func devsporeConfiguration() *config.ClusterConfiguration {
     return &config.ClusterConfiguration{
-    	Props: &mas.PropertiesConfiguration{
-    		AppID:        "xxx",
-    		MonitorID:    "xxx",
-    		DatabaseName: "xx",
-    	},
-    	EtcdConfig: &etcd.EtcdConfiguration{
-    		Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
-    		Username:    "etcduser",
-    		Password:    "etcdpwd",
-    		HTTPSEnable: false,
-    	},
-    	RouterConfig: &config.RouterConfiguration{
-    		Nodes: map[string]*config.NodeConfiguration{
-    			"dc1": {
-    				Master: "ds1",
-    			},
-    			"dc2": {
-    				Master: "ds2",
-    			},
-    		},
-    		Active: "dc1",
-    	},
-    	DataSource: map[string]*config.DataSourceConfiguration{
-    		"ds1": {
-    			URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
-    			Username: "root",
-    			Password: "123456",
-    		},
-    		"ds2": {
-    			URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
-    			Username: "root",
-    			Password: "123456",
-    		},
-    	},
+        Props: &mas.PropertiesConfiguration{
+            AppID:        "xxx",
+            MonitorID:    "xxx",
+            DatabaseName: "xx",
+        },
+        EtcdConfig: &etcd.EtcdConfiguration{
+            Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
+            Username:    "etcduser",
+            Password:    "etcdpwd",
+            HTTPSEnable: false,
+        },
+        RouterConfig: &config.RouterConfiguration{
+            Nodes: map[string]*config.NodeConfiguration{
+                "dc1": {
+                    Master: "ds1",
+                },
+                "dc2": {
+                    Master: "ds2",
+                },
+            },
+            Active: "dc1",
+        },
+        DataSource: map[string]*config.DataSourceConfiguration{
+            "ds1": {
+                URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
+                Username: "root",
+                Password: "123456",
+            },
+            "ds2": {
+                URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
+                Username: "root",
+                Password: "123456",
+            },
+        },
         Chaos: &mas.InjectionProperties{
-			Active:     true,
-			Duration:   50,
-			Interval:   100,
-			Percentage: 100,
-			DelayInjection: &mas.DelayInjection{
-				Active:     true,
-				Percentage: 75,
-				TimeMs:     1000,
-				JitterMs:   500,
-			},
-			ErrorInjection: &mas.ErrorInjection{
-				Active:     true,
-				Percentage: 30,
-			},
-		},
+            Active:     true,
+            Duration:   50,
+            Interval:   100,
+            Percentage: 100,
+            DelayInjection: &mas.DelayInjection{
+                Active:     true,
+                Percentage: 75,
+                TimeMs:     1000,
+                JitterMs:   500,
+            },
+            ErrorInjection: &mas.ErrorInjection{
+                Active:     true,
+                Percentage: 30,
+            },
+        },
     }
 }
 ```
 Alternatively, add the following configuration to the configuration file:
 ```bigquery
 chaos:
-  active: true # 全局开关 默认false
+  active: true
   duration: 20
   interval: 100
   percentage: 100

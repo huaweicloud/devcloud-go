@@ -60,7 +60,7 @@ router:
         - ds1-slave0
         - ds1-slave1
 chaos:
-  active: true # 全局开关 默认false
+  active: true
   duration: 20
   interval: 100
   percentage: 100

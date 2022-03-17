@@ -1,9 +1,9 @@
  # devcloud-go/redis
 
 ###Introduction
-Currently, the Redis supports three modes.sing-read-write,local-read-single-write and double-write
-##### sing-read-write
-![image](../img/redis-sing-read-write.png)
+Currently, the Redis supports three modes.single-read-write,local-read-single-write and double-write
+##### single-read-write
+![image](../img/redis-single-read-write.png)
 ##### local-read-single-write
 ![image](../img/redis-local-read-single-write.png)
 ##### double-write
@@ -117,9 +117,9 @@ redis:
 routeAlgorithm: single-read-write  # local-read-single-write, single-read-write, double-write
 active: dc1
 ```
-### Dual-write
-Redis also supports dual-write modes, including memory dual-write and file dual-write, 
-depending on asyncRemotePool.persist. true: file dual-write; false: memory dual write
+### Double-write
+Redis also supports double-write modes, including memory double-write and file double-write, 
+depending on asyncRemotePool.persist. true: file double-write; false: memory double-write
 ```bigquery
 redis:
   redisGroupName: xxx-redis-group
@@ -134,7 +134,7 @@ redis:
     persist: true
     threadCoreSize: 10
     taskQueueSize: 5
-    persistDir: datdDir/
+    persistDir: dataDir/
   servers:
     dc1:
       hosts: 127.0.0.1:6379
@@ -169,48 +169,48 @@ active: dc2
 Redis also supports the creation of services with fault injection. The configuration is similar to that of MySQL.
 ```bigquery
 func DCRedis(etcdAddrs, redisAddrs []string) *redisconfig.Configuration {
-	servers := make(map[string]*redisconfig.ServerConfiguration)
-	for i, addr := range redisAddrs {
-		stri := strconv.Itoa(i + 1)
-		servers["ds"+stri] = &redisconfig.ServerConfiguration{
-			Hosts:    addr,
-			Password: "123456",
-			Type:     redisconfig.ServerTypeNormal,
-			Cloud:    "huawei cloud",
-			Region:   "beijing",
-			Azs:      "az1",
-		}
-	}
-	configuration := &redisconfig.Configuration{
-		RedisConfig: &redisconfig.RedisConfiguration{
-			Servers: servers,
-		},
-		RouteAlgorithm: "single-read-write",
-		Active:         "ds1",
-		Chaos: &mas.InjectionProperties{
-			Active:     true,
-			Duration:   50,
-			Interval:   100,
-			Percentage: 100,
-			DelayInjection: &mas.DelayInjection{
-				Active:     true,
-				Percentage: 100,
-				TimeMs:     1000,
-				JitterMs:   500,
-			},
-			ErrorInjection: &mas.ErrorInjection{
-				Active:     true,
-				Percentage: 30,
-			},
-		},
-	}
-return configuration
+    servers := make(map[string]*redisconfig.ServerConfiguration)
+    for i, addr := range redisAddrs {
+        stri := strconv.Itoa(i + 1)
+        servers["ds"+stri] = &redisconfig.ServerConfiguration{
+            Hosts:    addr,
+            Password: "123456",
+            Type:     redisconfig.ServerTypeNormal,
+            Cloud:    "huawei cloud",
+            Region:   "beijing",
+            Azs:      "az1",
+        }
+    }
+    configuration := &redisconfig.Configuration{
+        RedisConfig: &redisconfig.RedisConfiguration{
+            Servers: servers,
+        },
+        RouteAlgorithm: "single-read-write",
+        Active:         "ds1",
+        Chaos: &mas.InjectionProperties{
+            Active:     true,
+            Duration:   50,
+            Interval:   100,
+            Percentage: 100,
+            DelayInjection: &mas.DelayInjection{
+                Active:     true,
+                Percentage: 100,
+                TimeMs:     1000,
+                JitterMs:   500,
+            },
+            ErrorInjection: &mas.ErrorInjection{
+                Active:     true,
+                Percentage: 30,
+            },
+        },
+    }
+    return configuration
 }
 ```
 Alternatively, add the following configuration to the configuration file:
 ```bigquery
 chaos:
-  active: true # 全局开关 默认false
+  active: true
   duration: 50
   interval: 100
   percentage: 100

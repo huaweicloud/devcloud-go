@@ -42,12 +42,12 @@ var (
 )
 
 type Metadata struct {
-	Id          int       `gorm:"column:id" json:"id" description:"主键，数据库自动生成。"`
-	Name        string    `gorm:"column:name;primaryKey" description:"必填，系统配置变量名"`
-	Defaultdata string    `gorm:"column:defaultdata" description:"变量默认值"`
-	List        string    `gorm:"column:list" description:"必填，变量所有可选值"`
-	Createtime  time.Time `gorm:"column:createtime;autoCreateTime" description:"只读，创建时间，由后台数据库自动生成"`
-	Updatetime  time.Time `gorm:"column:updatetime;autoUpdateTime" description:"只读，更新时间，由后台数据库自动生成"`
+	Id          int       `gorm:"column:id" json:"id"`
+	Name        string    `gorm:"column:name;primaryKey"`
+	Defaultdata string    `gorm:"column:defaultdata"`
+	List        string    `gorm:"column:list"`
+	Createtime  time.Time `gorm:"column:createtime;autoCreateTime"`
+	Updatetime  time.Time `gorm:"column:updatetime;autoUpdateTime"`
 }
 
 func (t *Metadata) TableName() string {

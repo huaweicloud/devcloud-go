@@ -12,7 +12,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package file Dual-write of files
+// Package file Double-write of files
 package file
 
 import (

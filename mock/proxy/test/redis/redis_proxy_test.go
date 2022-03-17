@@ -76,7 +76,6 @@ var _ = Describe("Redis", func() {
 	})
 
 	AfterSuite(func() {
-		// defer太多，放到一个defer就行
 		_ = redisClient.Close()
 		_ = client.Close()
 		utils.StopEtcdMock(dataDir)
