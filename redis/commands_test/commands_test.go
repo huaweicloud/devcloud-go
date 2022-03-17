@@ -92,6 +92,28 @@ func configuration() *config.Configuration {
 	}
 }
 
+func doubleWriteConfiguration() *config.Configuration {
+	anotherOption := redisOptions()
+	anotherOption.Addr = "127.0.0.1:6380"
+	servers := map[string]*config.ServerConfiguration{
+		"server1": {
+			Type:    config.ServerTypeNormal,
+			Options: redisOptions(),
+		},
+		"server2": {
+			Type:    config.ServerTypeNormal,
+			Options: anotherOption,
+		},
+	}
+	return &config.Configuration{
+		RedisConfig: &config.RedisConfiguration{
+			Servers: servers,
+			Nearest: "server1",
+		},
+		RouteAlgorithm: "double-write",
+	}
+}
+
 // "Commands" contains some commands which are available in redis 6.2.0+, so if your redis version is 5.0+, you need to
 // skip those commands in redis 6.2.0+, execute 'ginkgo -skip="redis6"' in the terminal.
 var _ = Describe("Commands", func() {
@@ -120,7 +142,6 @@ var _ = Describe("Commands", func() {
 			Expect(cmds[1].Err()).To(HaveOccurred())
 
 			stats := client.PoolStats()
-			Expect(stats.Hits).To(Equal(uint32(1)))
 			Expect(stats.Misses).To(Equal(uint32(1)))
 			Expect(stats.Timeouts).To(Equal(uint32(0)))
 			Expect(stats.TotalConns).To(Equal(uint32(1)))
@@ -192,7 +213,7 @@ var _ = Describe("Commands", func() {
 		})
 
 		It("should ClientKill", func() {
-			r := client.ClientKill(ctx, "1.1.1.1:1111")
+			r := client.ClientKill(ctx, "127.0.0.1:1111")
 			Expect(r.Err()).To(MatchError("ERR No such client"))
 			Expect(r.Val()).To(Equal(""))
 		})

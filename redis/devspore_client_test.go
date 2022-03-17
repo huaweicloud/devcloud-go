@@ -16,10 +16,14 @@ package redis
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/huaweicloud/devcloud-go/mock"
-	"github.com/stretchr/testify/assert"
+	"github.com/huaweicloud/devcloud-go/redis/strategy"
 )
 
 func TestDevsporeClient_ActiveChanges(t *testing.T) {
@@ -27,9 +31,12 @@ func TestDevsporeClient_ActiveChanges(t *testing.T) {
 		addr1 = "127.0.0.1:16379"
 		addr2 = "127.0.0.1:16380"
 	)
-	mock.StartMockRedis(mock.RedisMetadata{Addr: addr1})
-	mock.StartMockRedis(mock.RedisMetadata{Addr: addr2})
-	defer mock.StopMockRedis()
+	redisMock1 := mock.RedisMock{Addr: addr1}
+	redisMock2 := mock.RedisMock{Addr: addr2}
+	redisMock2.StartMockRedis()
+	redisMock1.StartMockRedis()
+	defer redisMock1.StopMockRedis()
+	defer redisMock2.StopMockRedis()
 
 	client := NewDevsporeClientWithYaml("./resources/config_for_active_change.yaml")
 	assert.Equal(t, 2, len(client.configuration.RedisConfig.Servers))
@@ -44,8 +51,8 @@ func TestDevsporeClient_ActiveChanges(t *testing.T) {
 		tests1Value = "test_value"
 	)
 	client.Set(ctx, tests1Key, tests1Value, 0)
-	s1res, _ := mock.GetMockRedisByAddr(addr1).Get(tests1Key)
-	s2res, _ := mock.GetMockRedisByAddr(addr2).Get(tests1Key)
+	s1res, _ := redisMock1.GetMockRedis().Get(tests1Key)
+	s2res, _ := redisMock2.GetMockRedis().Get(tests1Key)
 	assert.Equal(t, tests1Value, s1res)
 	assert.Equal(t, "", s2res)
 
@@ -56,8 +63,8 @@ func TestDevsporeClient_ActiveChanges(t *testing.T) {
 		tests2Value = "test_value"
 	)
 	client.Set(ctx, tests2Key, tests2Value, 0)
-	s1res, _ = mock.GetMockRedisByAddr(addr1).Get(tests2Key)
-	s2res, _ = mock.GetMockRedisByAddr(addr2).Get(tests2Key)
+	s1res, _ = redisMock1.GetMockRedis().Get(tests2Key)
+	s2res, _ = redisMock2.GetMockRedis().Get(tests2Key)
 	assert.Equal(t, "", s1res)
 	assert.Equal(t, tests2Value, s2res)
 }
@@ -67,15 +74,18 @@ func TestDevsporeClient_ReadWriteSeparated(t *testing.T) {
 		addr1 = "127.0.0.1:16379"
 		addr2 = "127.0.0.1:16380"
 	)
-	mock.StartMockRedis(mock.RedisMetadata{Addr: addr1})
-	mock.StartMockRedis(mock.RedisMetadata{Addr: addr2})
-	defer mock.StopMockRedis()
+	redisMock1 := mock.RedisMock{Addr: addr1}
+	redisMock2 := mock.RedisMock{Addr: addr2}
+	redisMock1.StartMockRedis()
+	redisMock2.StartMockRedis()
+	defer redisMock1.StopMockRedis()
+	defer redisMock2.StopMockRedis()
 	client := NewDevsporeClientWithYaml("./resources/config_for_read_write_separate.yaml")
 	assert.Equal(t, 2, len(client.configuration.RedisConfig.Servers))
 	client.configuration.RedisConfig.Servers["dc1"].Options.Addr = addr1
 	client.configuration.RedisConfig.Servers["dc2"].Options.Addr = addr2
 
-	assert.Equal(t, localReadSingleWrite, client.configuration.RouteAlgorithm)
+	assert.Equal(t, strategy.DoubleWriteMode, client.configuration.RouteAlgorithm)
 	assert.Equal(t, "dc1", client.configuration.RedisConfig.Nearest)
 	assert.Equal(t, "dc2", client.configuration.Active)
 	ctx := context.Background()
@@ -86,13 +96,25 @@ func TestDevsporeClient_ReadWriteSeparated(t *testing.T) {
 		tests1Value = "test_s1_value"
 		tests2Value = "test_s2_value"
 	)
-	mock.GetMockRedisByAddr(addr1).Set(testKey, tests1Value)
-	mock.GetMockRedisByAddr(addr2).Set(testKey, tests2Value)
+	redisMock1.GetMockRedis().Set(testKey, tests1Value)
+	redisMock2.GetMockRedis().Set(testKey, tests2Value)
 	assert.Equal(t, tests1Value, client.Get(ctx, testKey).Val())
 
 	client.Set(ctx, testKey, testValue, 0)
-	s1res, _ := mock.GetMockRedisByAddr(addr1).Get(testKey)
-	s2res, _ := mock.GetMockRedisByAddr(addr2).Get(testKey)
-	assert.Equal(t, tests1Value, s1res)
+	s1res, _ := redisMock1.GetMockRedis().Get(testKey)
+	i := 0
+	for {
+		i++
+		time.Sleep(time.Second)
+		s2res, _ := redisMock2.GetMockRedis().Get(testKey)
+		if s2res == testValue {
+			break
+		}
+
+	}
+	fmt.Println(i)
+	s2res, _ := redisMock2.GetMockRedis().Get(testKey)
+
+	assert.Equal(t, testValue, s1res)
 	assert.Equal(t, testValue, s2res)
 }

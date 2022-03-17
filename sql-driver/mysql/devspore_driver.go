@@ -11,22 +11,24 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package mysql provides a DevsporeDriver for Go's database/sql package.
- * Which can automatically switch data sources, read and write separation.
- * The driver should be used with "github.com/go-sql-driver/mysql":
-
- * import (
- * "database/sql"
- * "github.com/huaweicloud/devcloud-go/common/password"
- * _ "github.com/huaweicloud/devcloud-go/sql-driver/mysql"
- * )
-
- * password.SetDecipher(&MyDecipher{})
- * db, err := sql.Open("devspore_mysql", yamlConfigPath)
-
- * See README.md for more details.
  */
 
+/*
+Package mysql provides a DevsporeDriver for Go's database/sql package.
+Which can automatically switch data sources, read and write separation.
+The driver should be used with "github.com/go-sql-driver/mysql":
+
+import (
+"database/sql"
+"github.com/huaweicloud/devcloud-go/common/password"
+_ "github.com/huaweicloud/devcloud-go/sql-driver/mysql"
+)
+
+password.SetDecipher(&MyDecipher{})
+db, err := sql.Open("devspore_mysql", yamlConfigPath)
+
+See README.md for more details.
+*/
 package mysql
 
 import (
@@ -78,21 +80,20 @@ func (d DevsporeDriver) OpenConnector(yamlFilePath string) (driver.Connector, er
 		log.Printf("ERROR: create clusterdataSource failed, %v", err)
 		return nil, err
 	}
-	actualExecutor = newExecutor(clusterDataSource.RouterConfiguration.Retry)
-	return &devsporeConnector{clusterDataSource: clusterDataSource}, nil
+	actualExecutor := newExecutor(clusterDataSource.RouterConfiguration.Retry, configuration.Chaos)
+	return &devsporeConnector{clusterDataSource: clusterDataSource, executor: actualExecutor}, nil
 }
 
 var clusterConfiguration *config.ClusterConfiguration
 
-func SetClusterConfiguration(cfg *config.ClusterConfiguration)  {
+func SetClusterConfiguration(cfg *config.ClusterConfiguration) {
 	clusterConfiguration = cfg
 }
 
 func getClusterConfiguration(yamlFilePath string) (*config.ClusterConfiguration, error) {
-	if clusterConfiguration != nil {
+	if len(yamlFilePath) == 0 && clusterConfiguration != nil {
 		return clusterConfiguration, nil
 	}
-	// validate yaml file path
 	realPath, err := filepath.Abs(yamlFilePath)
 	if err != nil {
 		return nil, err

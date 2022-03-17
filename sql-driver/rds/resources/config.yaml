@@ -59,3 +59,16 @@ router:
       slaves:
         - ds1-slave0
         - ds1-slave1
+chaos:
+  active: true # 全局开关 默认false
+  duration: 20
+  interval: 100
+  percentage: 100
+  delayInjection:
+    active: true
+    percentage: 75
+    timeMs: 1000
+    jitterMs: 500
+  errorInjection:
+    active: true
+    percentage: 20

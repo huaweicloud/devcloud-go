@@ -11,9 +11,9 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package util provides some util function, such as ValidateHostPort.
  */
 
+// Package util provides some util function, such as ValidateHostPort.
 package util
 
 import (

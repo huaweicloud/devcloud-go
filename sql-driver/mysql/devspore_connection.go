@@ -28,6 +28,7 @@ type devsporeConn struct {
 	clusterDataSource *datasource.ClusterDataSource
 	cachedConn        sync.Map
 	inTransaction     bool
+	executor          *executor
 }
 
 // Begin Deprecated
@@ -76,10 +77,10 @@ func (dc *devsporeConn) BeginTx(ctx context.Context, opts driver.TxOptions) (dri
 	req := &executorReq{
 		ctx:        ctx,
 		opts:       opts,
-		methodName: "BeginTx",
+		methodName: BeginTx,
 		dc:         dc,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dc.executor.tryExecute(req)
 	if resp.err != nil {
 		log.Printf("ERROR: devsporeConnection execute BeginTx failed, err %v", resp.err)
 		return nil, resp.err
@@ -97,10 +98,10 @@ func (dc *devsporeConn) QueryContext(ctx context.Context, query string, args []d
 		ctx:        ctx,
 		query:      query,
 		ctxArgs:    args,
-		methodName: "QueryContext",
+		methodName: QueryContext,
 		dc:         dc,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dc.executor.tryExecute(req)
 	if resp.err != nil && resp.err != driver.ErrSkip {
 		log.Printf("ERROR: devsporeConnection execute QueryContext failed, err %v", resp.err)
 	}
@@ -113,10 +114,10 @@ func (dc *devsporeConn) ExecContext(ctx context.Context, query string, args []dr
 		ctx:        ctx,
 		query:      query,
 		ctxArgs:    args,
-		methodName: "ExecContext",
+		methodName: ExecContext,
 		dc:         dc,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dc.executor.tryExecute(req)
 	if resp.err != nil && resp.err != driver.ErrSkip {
 		log.Printf("ERROR: devsporeConnection execute ExecContext failed, err %v", resp.err)
 	}

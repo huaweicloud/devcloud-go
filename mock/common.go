@@ -11,9 +11,9 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * package mock introduce several mock methods for interface, mysql, redis and etcd.
  */
 
+// Package mock introduce three mock methods for interface, mysql and redis.
 package mock
 
 // use https://github.com/stretchr/testify and https://github.com/vektra/mockery to mock interface,

@@ -11,9 +11,9 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package example provides an example for user how to use dms.
  */
 
+// Package example provides an example for user how to use dms.
 package example
 
 import (

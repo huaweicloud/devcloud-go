@@ -37,13 +37,13 @@ var _ = Describe("CRUD", func() {
 		err        error
 		activeNode *datasource.NodeDataSource
 	)
-	metadata := mock.MysqlMetaData{
+	metadata := mock.MysqlMock{
 		User:      "root",
 		Password:  "root",
 		Address:   "127.0.0.1:13306",
 		Databases: []string{"ds0", "ds0-slave0", "ds0-slave1", "ds1", "ds1-slave0", "ds1-slave1"},
 	}
-	mock.StartMockMysql(metadata)
+	metadata.StartMockMysql()
 
 	BeforeEach(func() {
 		devsporeDB, err = sql.Open("devspore_mysql", "../rds/resources/driver_test_config.yaml")

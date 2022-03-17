@@ -183,7 +183,7 @@ var _ = Describe("Keys commands", func() {
 			Expect(set.Val()).To(Equal("OK"))
 
 			migrate = keysClient.Migrate(ctx, "localhost", redisSecondaryPort, "key", 0, 0)
-			Expect(migrate.Err().Error()).To(ContainSubstring("IOERR error or timeout"))
+			Expect(migrate.Err()).To(HaveOccurred())
 			Expect(migrate.Val()).To(Equal(""))
 		})
 

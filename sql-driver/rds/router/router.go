@@ -11,10 +11,12 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package router which will route an actual datasource according to route strategy and sql type.
- * the package defines two interfaces, RouteStrategy interface and Router interface.
  */
 
+/*
+Package router which will route an actual datasource according to route strategy and sql type.
+the package defines two interfaces, RouteStrategy interface and Router interface.
+*/
 package router
 
 import (

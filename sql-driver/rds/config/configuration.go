@@ -11,10 +11,12 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package config defines a series of configuration, include yaml configuration, remote configuration
- * and integration configuration which contains the above two configurations.
  */
 
+/*
+Package config defines a series of configuration, include yaml configuration, remote configuration
+and integration configuration which contains the above two configurations.
+*/
 package config
 
 import (
@@ -33,6 +35,7 @@ type ClusterConfiguration struct {
 	EtcdConfig   *etcd.EtcdConfiguration             `yaml:"etcd"`
 	RouterConfig *RouterConfiguration                `yaml:"router"`
 	DataSource   map[string]*DataSourceConfiguration `yaml:"datasource"`
+	Chaos        *mas.InjectionProperties            `yaml:"chaos"`
 }
 
 // RouterConfiguration yaml router configuration entity
