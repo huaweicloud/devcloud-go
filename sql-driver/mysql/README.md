@@ -1,6 +1,6 @@
 # devcloud-go/sql-driver/mysql
 
-###Introduction
+### Introduction
 Currently, MySQL supports two modes.single-read-write and local-read-single-write.
 In addition, read/write separation is supported, which can be configured as random or RoundRobin.
 ##### single-read-write
@@ -103,8 +103,7 @@ func main() {
     ......THEN 
 }
 
-3beego-orm
-
+3.beego-orm
 import (
 	"log"
 
@@ -273,5 +272,7 @@ chaos:
     percentage: 20
 ```
 
-###Description of Configuration Parameters
+### Description of Configuration Parameters
+|表头|表头|
+|-|-|
 ![img.png](../../img/mysql-configuration.png)

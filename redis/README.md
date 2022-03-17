@@ -1,6 +1,6 @@
  # devcloud-go/redis
 
-###Introduction
+### Introduction
 Currently, the Redis supports three modes.single-read-write,local-read-single-write and double-write
 ##### single-read-write
 ![image](../img/redis-single-read-write.png)
@@ -230,5 +230,5 @@ ginkgo -skip="redis6"
 ```
 See more usages of ginkgo in **https://github.com/onsi/ginkgo**
 
-###Description of Configuration Parameters
+### Description of Configuration Parameters
 ![img.png](../img/redis-configuration.png)
