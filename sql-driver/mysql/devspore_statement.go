@@ -25,6 +25,7 @@ type devsporeStmt struct {
 	dc    *devsporeConn
 	stmt  driver.Stmt
 	query string
+	dsn   string
 }
 
 // Close devsporeStmt
@@ -42,11 +43,11 @@ func (dsmt *devsporeStmt) NumInput() int {
 	req := &executorReq{
 		ctx:        dsmt.ctx,
 		query:      dsmt.query,
-		methodName: "stmt.NumInput",
+		methodName: StmtNumInput,
 		dc:         dsmt.dc,
 		dsmt:       dsmt,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dsmt.dc.executor.tryExecute(req)
 	if resp.err != nil {
 		log.Printf("ERROR: devsporeStatement execute NumInput failed, err %v", resp.err)
 	}
@@ -71,11 +72,11 @@ func (dsmt *devsporeStmt) QueryContext(ctx context.Context, args []driver.NamedV
 		ctx:        ctx,
 		query:      dsmt.query,
 		ctxArgs:    args,
-		methodName: "stmt.QueryContext",
+		methodName: StmtQueryContext,
 		dc:         dsmt.dc,
 		dsmt:       dsmt,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dsmt.dc.executor.tryExecute(req)
 	if resp.err != nil {
 		log.Printf("ERROR: devsporeStatement execute QueryContext failed, err %v", resp.err)
 	}
@@ -88,11 +89,11 @@ func (dsmt *devsporeStmt) ExecContext(ctx context.Context, args []driver.NamedVa
 		ctx:        ctx,
 		query:      dsmt.query,
 		ctxArgs:    args,
-		methodName: "stmt.ExecContext",
+		methodName: StmtExecContext,
 		dc:         dsmt.dc,
 		dsmt:       dsmt,
 	}
-	resp := getExecutor().tryExecute(req)
+	resp := dsmt.dc.executor.tryExecute(req)
 	if resp.err != nil {
 		log.Printf("ERROR: devsporeStatement execute ExecContext failed, err %v", resp.err)
 	}
@@ -101,9 +102,10 @@ func (dsmt *devsporeStmt) ExecContext(ctx context.Context, args []driver.NamedVa
 
 // getStatement get an actual statement from devsporeStmt if exists or create a new statement.
 func (dsmt *devsporeStmt) getStatement(ctx context.Context, dsn string) (driver.Stmt, error) {
-	if dsmt.stmt != nil {
+	if dsmt.stmt != nil && dsmt.dsn == dsn {
 		return dsmt.stmt, nil
 	}
+	dsmt.dsn = dsn
 	conn, err := dsmt.dc.getConnection(ctx, dsn)
 	if err != nil {
 		return nil, err

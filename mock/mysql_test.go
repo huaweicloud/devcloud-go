@@ -17,6 +17,7 @@ package mock
 
 import (
 	"database/sql"
+	"log"
 	"testing"
 	"time"
 
@@ -27,25 +28,35 @@ import (
 )
 
 func TestMysqlMock(t *testing.T) {
-	metadata := MysqlMetaData{
+	metadata := MysqlMock{
 		User:         "root",
 		Password:     "root",
 		Address:      "127.0.0.1:3318",
 		Databases:    []string{"mydb"},
 		MemDatabases: []*memory.Database{createTestDatabase("mydb", "user")},
 	}
-	StartMockMysql(metadata)
-	defer StopMockMysql()
+	err := metadata.StartMockMysql()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer metadata.StopMockMysql()
 
 	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3318)/mydb")
-	defer db.Close()
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	var name, email string
 	err = db.QueryRow("SELECT name, email FROM user WHERE id=?", 1).Scan(&name, &email)
-	assert.Nil(t, err)
+	if err != nil {
+		log.Println(err)
+	}
 	assert.Equal(t, name, "John Doe")
 	assert.Equal(t, email, "jasonkay@doe.com")
 }
@@ -71,7 +82,8 @@ func createTestDatabase(dbName, tableName string) *memory.Database {
 	}
 
 	for _, row := range rows {
-		_ = table.Insert(ctx, row)
+		err := table.Insert(ctx, row)
+		log.Println(err)
 	}
 	return db
 }

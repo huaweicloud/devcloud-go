@@ -11,11 +11,13 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package loader provides ConfigurationFileHandler and RemoteConfigurationLoader,
- * the ConfigurationFileHandler is used for load config from cache and save remote config to cache,
- * the RemoteConfigurationLoader is used for load config from remote etcd.
  */
 
+/*
+Package loader provides ConfigurationFileHandler and RemoteConfigurationLoader,
+the ConfigurationFileHandler is used for load config from cache and save remote config to cache,
+the RemoteConfigurationLoader is used for load config from remote etcd.
+*/
 package loader
 
 import (

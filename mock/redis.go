@@ -21,53 +21,41 @@ import (
 	"github.com/alicebob/miniredis/v2"
 )
 
-type RedisMetadata struct {
+type RedisMock struct {
 	User     string // optional
 	Password string // optional
-	Addr     string
+	Addr     string // optional
+	redis    *miniredis.Miniredis
 }
 
-var redisMap = map[string]*miniredis.Miniredis{}
-
-func StartMockRedis(metadata RedisMetadata) {
-	redis := miniredis.NewMiniRedis()
-	if len(metadata.User) > 0 && len(metadata.Password) > 0 {
-		redis.RequireUserAuth(metadata.User, metadata.Password)
+func (r *RedisMock) StartMockRedis() error {
+	r.redis = miniredis.NewMiniRedis()
+	if len(r.User) > 0 && len(r.Password) > 0 {
+		r.redis.RequireUserAuth(r.User, r.Password)
 	}
-	if len(metadata.User) == 0 && len(metadata.Password) > 0 {
-		redis.RequireAuth(metadata.Password)
+	if len(r.User) == 0 && len(r.Password) > 0 {
+		r.redis.RequireAuth(r.Password)
 	}
 	var err error
-	if len(metadata.Addr) > 0 {
-		err = redis.StartAddr(metadata.Addr)
+	if len(r.Addr) > 0 {
+		err = r.redis.StartAddr(r.Addr)
 	} else {
-		err = redis.Start()
+		err = r.redis.Start()
+		r.Addr = r.redis.Addr()
 	}
 	if err != nil {
-		log.Printf("ERROR: start mock redis failed, %v", err)
-		return
+		log.Printf("ERROR: start miniredis failed, %v", err)
+		return err
 	}
-	log.Printf("mock redis [%s] started! ", redis.Addr())
-	redisMap[redis.Addr()] = redis
-	return
-}
-
-func GetMockRedisByAddr(addr string) *miniredis.Miniredis {
-	if redis, ok := redisMap[addr]; ok {
-		return redis
-	}
-	log.Fatalf("ERROR: no [%s] redis", addr)
+	log.Printf("mock redis [%s] started! ", r.redis.Addr())
 	return nil
 }
 
-func StopMockRedis() {
-	if len(redisMap) == 0 {
-		return
-	}
-	for addr, redis := range redisMap {
-		redis.Close()
-		log.Printf("mock redis [%s] stop! ", addr)
-	}
-	redisMap = map[string]*miniredis.Miniredis{}
-	return
+func (r *RedisMock) GetMockRedis() *miniredis.Miniredis {
+	return r.redis
+}
+
+func (r *RedisMock) StopMockRedis() {
+	r.redis.Close()
+	log.Printf("mock redis [%s] stop! ", r.Addr)
 }

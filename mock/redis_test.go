@@ -24,7 +24,8 @@ import (
 )
 
 func TestRedisClusterMock(t *testing.T) {
-	StartMockRedis(RedisMetadata{Addr: "127.0.0.1:16379"})
+	redisMock := RedisMock{Addr: "127.0.0.1:16379"}
+	redisMock.StartMockRedis()
 	cluster := goredis.NewClusterClient(&goredis.ClusterOptions{
 		Addrs: []string{"127.0.0.1:16379"},
 	})
@@ -34,5 +35,5 @@ func TestRedisClusterMock(t *testing.T) {
 	res := cluster.Get(ctx, "key")
 	assert.Nil(t, res.Err())
 	assert.Equal(t, res.Val(), "val")
-	StopMockRedis()
+	redisMock.StopMockRedis()
 }

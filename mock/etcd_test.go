@@ -9,7 +9,8 @@
  * Unless required by applicable law or agreed to in writing, software distributed
  * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations under the License.
+ *  specific language governing permissions and limitations under the License.
+ *
  */
 
 package mock
@@ -31,7 +32,7 @@ func TestMockEtcd(t *testing.T) {
 	defer func(path string) {
 		err := os.RemoveAll(path)
 		if err != nil {
-			t.Errorf("remove data dir failed, %v", err)
+			t.Errorf("ERROR: remove data dir failed, %v", err)
 		}
 	}(dataDir)
 	metadata := NewEtcdMetadata()
@@ -46,22 +47,22 @@ func TestMockEtcd(t *testing.T) {
 	defer func(client *clientv3.Client) {
 		err = client.Close()
 		if err != nil {
-			t.Errorf("close client failed, %v", err)
+			t.Errorf("ERROR: close client failed, %v", err)
 		}
 	}(client)
 
-	key := "key"
-	val := "Val"
+	testKey := "key"
+	testVal := "val"
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	_, err = client.Put(ctx, key, val, clientv3.WithPrevKV())
+	_, err = client.Put(ctx, testKey, testVal, clientv3.WithPrevKV())
 	cancel()
 	assert.Nil(t, err)
 
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-	resp, err := client.Get(ctx, key)
+	resp, err := client.Get(ctx, testKey)
 	cancel()
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), resp.Count)
-	assert.Equal(t, val, string(resp.Kvs[0].Value))
+	assert.Equal(t, testVal, string(resp.Kvs[0].Value))
 }

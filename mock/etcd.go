@@ -35,33 +35,32 @@ func (m *MockEtcd) StartMockEtcd(metadata *EtcdMetadata) {
 	cfg.LPUrls = convertAddrsToUrls(metadata.PeerAddrs)
 	cfg.Dir = metadata.DataDir
 	cfg.LogLevel = "warn"
+	m.cfg = cfg
 
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
 		log.Printf("ERROR: start embed etcd failed, %v", err)
 		return
 	}
-
 	m.e = e
 	if metadata.AuthEnable {
 		m.initRootRole()
 		m.AddUser(defaultUser, defaultPassword)
 		err = m.e.Server.AuthStore().AuthEnable()
 		if err != nil {
-			log.Printf("ERROR: enable auth failed, %v", e)
+			log.Printf("ERROR: enable auth failed, %v", err)
 			return
 		}
-		if len(metadata.UserName) > 0 && len(metadata.Password) > 0 {
-			m.AddUser(metadata.UserName, metadata.Password)
-		}
 	}
-
+	if len(metadata.UserName) > 0 && len(metadata.Password) > 0 {
+		m.AddUser(metadata.UserName, metadata.Password)
+	}
 	select {
 	case <-m.e.Server.ReadyNotify():
-		log.Println("Start mock etcd!")
-	case <-time.After(10 * time.Second):
-		m.e.Server.Stop()
-		log.Println("Etcd server take too long to start!")
+		log.Printf("Start mock etcd!")
+	case <-time.After(60 * time.Second):
+		m.e.Server.Stop() // trigger a shutdown
+		log.Printf("Server took too long to start!")
 	}
 }
 
@@ -75,15 +74,16 @@ func (m *MockEtcd) initRootRole() {
 	authStore := m.e.Server.AuthStore()
 	_, err := authStore.RoleAdd(&pb.AuthRoleAddRequest{Name: defaultRole})
 	if err != nil {
-		log.Printf("ERROR: add 'root' role failed, %v", err)
+		log.Printf("ERROR: add 'root' role failed, %+v", err)
 	}
 
 	_, err = authStore.RoleGrantPermission(&pb.AuthRoleGrantPermissionRequest{
 		Name: defaultRole,
-		Perm: &authpb.Permission{PermType: 2},
-	})
+		Perm: &authpb.Permission{
+			PermType: 2,
+		}})
 	if err != nil {
-		log.Printf("ERROR: RoleGrantPermission failed, %v", err)
+		log.Printf("ERROR: RoleGrantPermission failed, %+v", err)
 	}
 }
 
@@ -107,7 +107,7 @@ func (m *MockEtcd) AddUser(user, password string) {
 
 type EtcdMetadata struct {
 	ClientAddrs []string
-	PeerAddrs   []string
+	PeerAddrs   []string // optional
 	AuthEnable  bool
 	UserName    string
 	Password    string
@@ -126,8 +126,11 @@ func NewEtcdMetadata() *EtcdMetadata {
 func convertAddrsToUrls(addrs []string) []url.URL {
 	var urls []url.URL
 	for _, addr := range addrs {
-		url, _ := url.Parse("http://" + addr)
-		urls = append(urls, *url)
+		tUrl, err := url.Parse("http://" + addr)
+		if err != nil {
+			log.Println(err)
+		}
+		urls = append(urls, *tUrl)
 	}
 	return urls
 }

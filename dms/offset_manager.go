@@ -115,7 +115,7 @@ func (m *OffsetManager) handleOffsetOnCleanUp(offsetPersist OffsetPersist) int64
 	m.lock.RUnlock()
 	offset := minKey.(int64) + m.startOffset + int64(minNode.(*OffsetNode).maxContinuous())
 	if err := offsetPersist.Save(m.groupId, m.topic, m.partition, offset); err != nil {
-		log.Printf("WARNING: groupId/topic/partition %s/%s/%s persist %d fail on clean up, %v",
+		log.Printf("WARNING: groupId/topic/partition %s/%s/%d persist %d fail on clean up, %v",
 			m.groupId, m.topic, m.partition, offset, err)
 	}
 	return offset

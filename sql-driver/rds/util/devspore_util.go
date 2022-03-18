@@ -11,9 +11,9 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package util provides the function IsOnlyRead to check sql is only read, and provides a LRUCache.
  */
 
+// Package util provides the function IsOnlyRead to check sql is only read, and provides a LRUCache.
 package util
 
 import (
