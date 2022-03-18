@@ -44,12 +44,11 @@ func TestPropertiesConfiguration_CalHashCode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &PropertiesConfiguration{
-				Version:           tt.fields.Version,
-				AppID:             tt.fields.AppID,
-				MonitorID:         tt.fields.MonitorID,
-				DatabaseName:      tt.fields.DatabaseName,
-				DecipherClassName: tt.fields.DecipherClassName,
-				Region:            tt.fields.Region,
+				Version:      tt.fields.Version,
+				AppID:        tt.fields.AppID,
+				MonitorID:    tt.fields.MonitorID,
+				DatabaseName: tt.fields.DatabaseName,
+				Region:       tt.fields.Region,
 			}
 			if got := p.CalHashCode(); got != tt.want {
 				t.Errorf("CalHashCode() = %v, want %v", got, tt.want)

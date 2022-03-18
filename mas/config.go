@@ -11,23 +11,22 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package mas contains mas properties configuration.
  */
 
+// Package mas contains mas properties configuration.
 package mas
 
 import "fmt"
 
 // PropertiesConfiguration yaml properties configuration entity
 type PropertiesConfiguration struct {
-	Version           string `yaml:"version"`
-	AppID             string `yaml:"appId"`
-	MonitorID         string `yaml:"monitorId"`
-	DatabaseName      string `yaml:"databaseName"`
-	DecipherClassName string `yaml:"decipherClassName"`
-	Cloud             string `yaml:"cloud"`
-	Region            string `yaml:"region"`
-	Azs               string `yaml:"azs"`
+	Version      string `yaml:"version"`
+	AppID        string `yaml:"appId"`
+	MonitorID    string `yaml:"monitorId"`
+	DatabaseName string `yaml:"databaseName"`
+	Cloud        string `yaml:"cloud"`
+	Region       string `yaml:"region"`
+	Azs          string `yaml:"azs"`
 }
 
 const propertiesConfigurationHashCodeFmt = "%s_%s_%s_%s"

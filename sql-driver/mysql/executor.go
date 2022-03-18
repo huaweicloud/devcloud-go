@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/huaweicloud/devcloud-go/mas"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/datasource"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/router"
@@ -35,15 +36,20 @@ const (
 	exclusiveRetryDelay = 60000 // ms
 )
 
-var actualExecutor *executor
-
-func getExecutor() *executor {
-	return actualExecutor
-}
-
 var (
 	errNoDatasource  = errors.New("no available data source")
 	errTypeAssertion = errors.New("type assertion err")
+)
+
+type methodName string
+
+const (
+	BeginTx          methodName = "BeginTx"
+	QueryContext     methodName = "QueryContext"
+	ExecContext      methodName = "ExecContext"
+	StmtQueryContext methodName = "stmt.QueryContext"
+	StmtExecContext  methodName = "stmt.ExecContext"
+	StmtNumInput     methodName = "stmt.NumInput"
 )
 
 // executorReq contains all connection and statement method params
@@ -55,7 +61,7 @@ type executorReq struct {
 	query      string
 	ctxArgs    []driver.NamedValue
 	opts       driver.TxOptions
-	methodName string
+	methodName methodName
 }
 
 // executorResp contains all connection and statement method return params
@@ -69,16 +75,21 @@ type executorResp struct {
 }
 
 type executor struct {
-	exclusives sync.Map
-	retryTimes int
-	retryDelay int // ms
+	exclusives          sync.Map
+	retryTimes          int
+	retryDelay          int // ms
+	injectionManagement *mas.InjectionManagement
 }
 
-func newExecutor(retry *config.RetryConfiguration) *executor {
+func newExecutor(retry *config.RetryConfiguration, chaos *mas.InjectionProperties) *executor {
 	e := &executor{
 		retryTimes: defaultRetryTimes,
 		retryDelay: defaultRetryDelay,
 		exclusives: sync.Map{},
+	}
+	if chaos != nil {
+		e.injectionManagement = mas.NewInjectionManagement(chaos)
+		e.injectionManagement.SetError(mas.MysqlErrors())
 	}
 	if retry != nil && retry.Times != "" {
 		if retryTimes, err := strconv.Atoi(retry.Times); err != nil {
@@ -92,9 +103,21 @@ func newExecutor(retry *config.RetryConfiguration) *executor {
 	}
 	return e
 }
+func (e *executor) beforeTryExecute() *executorResp {
+	err := e.injectionManagement.Inject()
+	if err != nil {
+		return &executorResp{
+			err: err,
+		}
+	}
+	return nil
+}
 
 // from cluster datasource choose a node datasource
 func (e *executor) tryExecute(req *executorReq) *executorResp {
+	if err := e.beforeTryExecute(); err != nil {
+		return err
+	}
 	// insure parse sql only once
 	isSQLOnlyRead := util.IsOnlyRead(req.query)
 	// route node datasource
@@ -187,30 +210,30 @@ func (e *executor) execute(req *executorReq, dsn string) *executorResp {
 	}
 	switch req.methodName {
 	// conn methods
-	case "BeginTx":
+	case BeginTx:
 		if connBeginTx, ok := conn.(driver.ConnBeginTx); ok {
 			tx, err = connBeginTx.BeginTx(req.ctx, req.opts)
 		} else {
 			err = errTypeAssertion
 		}
-	case "QueryContext":
+	case QueryContext:
 		if queryerCtx, ok := conn.(driver.QueryerContext); ok {
 			rows, err = queryerCtx.QueryContext(req.ctx, req.query, req.ctxArgs)
 		} else {
 			err = errTypeAssertion
 		}
-	case "ExecContext":
+	case ExecContext:
 		if execerCtx, ok := conn.(driver.ExecerContext); ok {
 			result, err = execerCtx.ExecContext(req.ctx, req.query, req.ctxArgs)
 		} else {
 			err = errTypeAssertion
 		}
 	// statement methods
-	case "stmt.QueryContext":
+	case StmtQueryContext:
 		rows, err = stmtQueryContext(req, dsn)
-	case "stmt.ExecContext":
+	case StmtExecContext:
 		result, err = stmtExecContext(req, dsn)
-	case "stmt.NumInput":
+	case StmtNumInput:
 		numInput, err = stmtNumInput(req, dsn)
 	}
 

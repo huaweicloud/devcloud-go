@@ -15,6 +15,10 @@
  * user can set customize decipher by SetDecipher function.
  */
 
+/*
+Package password defines Decipher interface, which is used to decode password,
+user can set customize decipher by SetDecipher function.
+*/
 package password
 
 import "sync"

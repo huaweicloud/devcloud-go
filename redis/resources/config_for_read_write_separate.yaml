@@ -3,8 +3,15 @@ redis:
   username: xxx # for redis 6.0
   password: yyy
   nearest: dc1
+  asyncRemoteWrite:
+    retryTimes: 4
   connectionPool:
     enable: true
+  asyncRemotePool:
+    persist: true
+    threadCoreSize: 10
+    taskQueueSize: 5
+    persistDir: dataDir/
   servers:
     dc1:
       hosts: 127.0.0.1:6379
@@ -32,5 +39,5 @@ redis:
         minIdle: 0
         maxWaitMillis: 10000
         timeBetweenEvictionRunsMillis: 1000
-routeAlgorithm: local-read-single-write  # local-read-single-write, single-read-write
+routeAlgorithm: double-write  # local-read-single-write, single-read-write
 active: dc2

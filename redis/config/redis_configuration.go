@@ -16,13 +16,28 @@ package config
 
 // RedisConfiguration defines a series of redis configuration in yaml file.
 type RedisConfiguration struct {
-	RedisGroupName       string                            `yaml:"redisGroupName"`
-	UserName             string                            `yaml:"useName"`
-	Nearest              string                            `yaml:"nearest"`
-	Servers              map[string]*ServerConfiguration   `yaml:"servers"`
-	ConnectionPoolConfig *RedisConnectionPoolConfiguration `yaml:"connectionPool"`
+	RedisGroupName               string                            `yaml:"redisGroupName"`
+	UserName                     string                            `yaml:"useName"`
+	Nearest                      string                            `yaml:"nearest"`
+	Servers                      map[string]*ServerConfiguration   `yaml:"servers"`
+	ConnectionPoolConfig         *RedisConnectionPoolConfiguration `yaml:"connectionPool"`
+	AsyncRemoteWrite             *AsyncRemoteWrite                 `yaml:"asyncRemoteWrite"`
+	AsyncRemotePoolConfiguration *AsyncRemotePoolConfiguration     `yaml:"asyncRemotePool"`
 }
 
 type RedisConnectionPoolConfiguration struct {
 	Enable bool `yaml:"enable"`
+}
+
+type AsyncRemoteWrite struct {
+	RetryTimes int `yaml:"retryTimes"`
+}
+
+type AsyncRemotePoolConfiguration struct {
+	Persist         bool   `yaml:"persist"`
+	ThreadCoreSize  int    `yaml:"threadCoreSize"`
+	MaximumPoolSize int    `yaml:"maximumPoolSize"`
+	KeepAliveTime   int64  `yaml:"keepAliveTime"`
+	TaskQueueSize   int    `yaml:"taskQueueSize"`
+	PersistDir      string `yaml:"persistDir"`
 }

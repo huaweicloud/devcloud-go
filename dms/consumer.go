@@ -11,10 +11,12 @@
  * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * Package dms implements a kafka consumer based on sarama, user can consume messages
- * asynchronous or synchronous with dms, and ensure message not lost.
  */
 
+/*
+Package dms implements a kafka consumer based on sarama, user can consume messages
+asynchronous or synchronous with dms, and ensure message not lost.
+*/
 package dms
 
 import (
