@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -143,7 +144,7 @@ func (f *Operation) CreateFile(originPath string) (*os.File, error) {
 	nameItem = append(nameItem, strconv.FormatInt(f.lastCreateTime, 10))
 	nameItem = append(nameItem, DefaultVersion)
 	path := strings.Join(nameItem, Delimiter) + Suffix
-	return os.OpenFile(path, os.O_CREATE, CacheFilePerm)
+	return os.OpenFile(filepath.Clean(path), os.O_CREATE, CacheFilePerm)
 }
 
 // traversal Traverse and check whether the execution requirements are met

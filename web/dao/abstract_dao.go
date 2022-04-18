@@ -22,7 +22,7 @@ import (
 )
 
 type AbstractDao struct {
-	db *gorm.DB
+	DB *gorm.DB
 	*utils.ModelInfo
 }
 
@@ -34,21 +34,24 @@ func NewAbstractDao(db *gorm.DB, modelInfo *utils.ModelInfo) *AbstractDao {
 }
 
 func (d *AbstractDao) Add(model interface{}) (interface{}, error) {
-	if err := d.db.Create(model).Error; err != nil {
+	if err := d.DB.Create(model).Error; err != nil {
 		return nil, err
 	}
 	return model, nil
 }
 
 func (d *AbstractDao) AddBatch(models interface{}) (interface{}, error) {
-	if err := d.db.Create(models).Error; err != nil {
+	if err := d.DB.Create(models).Error; err != nil {
 		return nil, err
 	}
 	return models, nil
 }
 
 func (d *AbstractDao) Update(model interface{}, pk string) (interface{}, error) {
-	if err := d.db.Updates(model).Error; err != nil {
+	if _, err := d.GetOneByPrimaryKey(pk); err != nil {
+		return nil, err
+	}
+	if err := d.DB.Where(d.PKJson+" = ?", pk).Updates(model).Error; err != nil {
 		return nil, err
 	}
 	return d.GetOneByPrimaryKey(pk)
@@ -56,17 +59,17 @@ func (d *AbstractDao) Update(model interface{}, pk string) (interface{}, error) 
 
 func (d *AbstractDao) DeleteByPrimaryKey(primaryKey string) error {
 	model := d.GetModel().Interface()
-	return d.db.Where(d.PKJson+" = ?", primaryKey).Delete(model).Error
+	return d.DB.Where(d.PKJson+" = ?", primaryKey).Delete(model).Error
 }
 
 func (d *AbstractDao) DeleteByPrimaryKeys(primaryKeys []string) error {
 	model := d.GetModel().Interface()
-	return d.db.Where(d.PKJson+" IN ?", primaryKeys).Delete(model).Error
+	return d.DB.Where(d.PKJson+" IN ?", primaryKeys).Delete(model).Error
 }
 
 func (d *AbstractDao) GetOneByPrimaryKey(primaryKey string) (interface{}, error) {
 	model := d.GetModel().Interface()
-	if err := d.db.Where(d.PKJson+" = ?", primaryKey).First(model).Error; err != nil {
+	if err := d.DB.Where(d.PKJson+" = ?", primaryKey).First(model).Error; err != nil {
 		return nil, err
 	}
 	return model, nil
@@ -74,7 +77,7 @@ func (d *AbstractDao) GetOneByPrimaryKey(primaryKey string) (interface{}, error)
 
 func (d *AbstractDao) GetListByPrimaryKeys(primaryKeys []string) (interface{}, error) {
 	models := d.GetModels().Interface()
-	if err := d.db.Where(d.PKJson+" IN ?", primaryKeys).Find(models).Error; err != nil {
+	if err := d.DB.Where(d.PKJson+" IN ?", primaryKeys).Find(models).Error; err != nil {
 		return nil, err
 	}
 	return models, nil
@@ -82,7 +85,7 @@ func (d *AbstractDao) GetListByPrimaryKeys(primaryKeys []string) (interface{}, e
 
 func (d *AbstractDao) GetList(queryCond utils.QueryConditions) (interface{}, error) {
 	models := d.GetModels().Interface()
-	db := d.db.Model(d.GetModel().Interface())
+	db := d.DB.Model(d.GetModel().Interface())
 	db = getCondGormDB(db, queryCond)
 	if err := db.Find(models).Error; err != nil {
 		return nil, err

@@ -15,37 +15,57 @@
 
 package resp
 
-const (
-	StatusSuccess = "success"
-	StatusFailure = "failure"
-)
+import "net/http"
 
-type SuccessResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
+type ResponseInfo struct {
+	Code  int         `json:"code,omitempty"`
+	Data  interface{} `json:"data,omitempty"`
+	Error string      `json:"error,omitempty"`
 }
 
-type FailureResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
+var FuncResp func(info *ResponseInfo) interface{}
+
+func FormatResp(funcResp func(info *ResponseInfo) interface{}) {
+	FuncResp = funcResp
 }
 
-func Success() SuccessResponse {
-	return SuccessResponse{
-		Status: StatusSuccess,
+func GetResp(info *ResponseInfo) interface{} {
+	if FuncResp != nil {
+		return FuncResp(info)
+	}
+	return info
+}
+
+func Success() *ResponseInfo {
+	return &ResponseInfo{
+		Code: http.StatusOK,
 	}
 }
 
-func SuccessData(data interface{}) SuccessResponse {
-	return SuccessResponse{
-		Status: StatusSuccess,
-		Data:   data,
+func CreateData(data interface{}) *ResponseInfo {
+	return &ResponseInfo{
+		Code: http.StatusCreated,
+		Data: data,
 	}
 }
 
-func Failure(msg string) FailureResponse {
-	return FailureResponse{
-		Status:  StatusFailure,
-		Message: msg,
+func SuccessData(data interface{}) *ResponseInfo {
+	return &ResponseInfo{
+		Code: http.StatusOK,
+		Data: data,
+	}
+}
+
+func Failure(msg string) *ResponseInfo {
+	return &ResponseInfo{
+		Code:  http.StatusInternalServerError,
+		Error: msg,
+	}
+}
+
+func FailureStatus(status int, msg string) *ResponseInfo {
+	return &ResponseInfo{
+		Code:  status,
+		Error: msg,
 	}
 }

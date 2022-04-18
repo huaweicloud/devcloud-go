@@ -16,6 +16,11 @@
 package domain
 
 import (
+	"net/http"
+	"strings"
+
+	"gorm.io/gorm"
+
 	"github.com/huaweicloud/devcloud-go/web/dao"
 	"github.com/huaweicloud/devcloud-go/web/resp"
 	"github.com/huaweicloud/devcloud-go/web/utils"
@@ -33,42 +38,51 @@ func NewAbstractDomain(abstractDao *dao.AbstractDao) *AbstractDomain {
 	}
 }
 
-func (d *AbstractDomain) Add(model interface{}) (interface{}, *resp.ErrorMsg) {
+func (d *AbstractDomain) Add(model interface{}) *resp.ResponseInfo {
 	model, err := d.abstractDao.Add(model)
-	if err != nil {
-		return nil, resp.InternalServerErr2Json(err)
+	if err == nil {
+		return resp.CreateData(model)
 	}
-	return model, nil
+	if strings.Contains(err.Error(), utils.ErrDuplicateKey) {
+		return resp.FailureStatus(http.StatusBadRequest, "duplicate primary key")
+	}
+	return resp.Failure(err.Error())
 }
 
-func (d *AbstractDomain) GetOneByPK(pk string) (interface{}, *resp.ErrorMsg) {
+func (d *AbstractDomain) GetOneByPK(pk string) *resp.ResponseInfo {
 	model, err := d.abstractDao.GetOneByPrimaryKey(pk)
-	if err != nil {
-		return nil, resp.InternalServerErr2Json(err)
+	if err == nil {
+		return resp.SuccessData(model)
 	}
-	return model, nil
+	if err == gorm.ErrRecordNotFound {
+		return resp.FailureStatus(http.StatusNotFound, err.Error())
+	}
+	return resp.Failure(err.Error())
 }
 
-func (d *AbstractDomain) Update(model interface{}, pk string) (interface{}, *resp.ErrorMsg) {
+func (d *AbstractDomain) Update(model interface{}, pk string) *resp.ResponseInfo {
 	model, err := d.abstractDao.Update(model, pk)
-	if err != nil {
-		return nil, resp.InternalServerErr2Json(err)
+	if err == nil {
+		return resp.SuccessData(model)
 	}
-	return model, nil
+	if err == gorm.ErrRecordNotFound {
+		return resp.FailureStatus(http.StatusNotFound, err.Error())
+	}
+	return resp.Failure(err.Error())
 }
 
-func (d *AbstractDomain) Delete(pk string) *resp.ErrorMsg {
+func (d *AbstractDomain) Delete(pk string) *resp.ResponseInfo {
 	err := d.abstractDao.DeleteByPrimaryKey(pk)
 	if err != nil {
-		return resp.InternalServerErr2Json(err)
+		return resp.Failure(err.Error())
 	}
-	return nil
+	return resp.SuccessData("OK")
 }
 
-func (d *AbstractDomain) GetList(queryCond utils.QueryConditions) (interface{}, *resp.ErrorMsg) {
+func (d *AbstractDomain) GetList(queryCond utils.QueryConditions) *resp.ResponseInfo {
 	models, err := d.abstractDao.GetList(queryCond)
 	if err != nil {
-		return nil, resp.InternalServerErr2Json(err)
+		return resp.Failure(err.Error())
 	}
-	return models, nil
+	return resp.SuccessData(models)
 }

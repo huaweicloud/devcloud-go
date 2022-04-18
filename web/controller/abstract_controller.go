@@ -16,7 +16,6 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 
@@ -37,67 +36,48 @@ func NewAbstractController(domain *domain.AbstractDomain) *AbstractController {
 
 func (c *AbstractController) Get(ctx *gin.Context) {
 	pk := utils.GetStringParam(ctx, c.domain.PKJson)
-	model, errMsg := c.domain.GetOneByPK(pk)
-	if errMsg != nil {
-		ctx.JSON(errMsg.Errno, errMsg)
-		return
-	}
-	ctx.JSON(http.StatusOK, model)
+	response := c.domain.GetOneByPK(pk)
+	ctx.JSON(response.Code, resp.GetResp(response))
 }
 
 func (c *AbstractController) Add(ctx *gin.Context) {
 	model := c.domain.GetModel()
+	response := new(resp.ResponseInfo)
 	if err := ctx.BindJSON(model.Interface()); err != nil {
-		ctx.JSON(http.StatusBadRequest, resp.BadRequestErr2Json(err))
-		return
+		response = resp.FailureStatus(http.StatusBadRequest, err.Error())
+	} else {
+		response = c.domain.Add(model.Interface())
 	}
-	curModel, errMsg := c.domain.Add(model.Interface())
-	if errMsg != nil {
-		ctx.JSON(errMsg.Errno, errMsg)
-		return
-	}
-	ctx.JSON(http.StatusOK, curModel)
+	ctx.JSON(response.Code, resp.GetResp(response))
 }
 
 func (c *AbstractController) Update(ctx *gin.Context) {
 	pk := utils.GetStringParam(ctx, c.domain.PKJson)
 	model := c.domain.GetModel()
-	var err error
-	if err = ctx.BindJSON(model.Interface()); err != nil {
-		ctx.JSON(http.StatusBadRequest, resp.BadRequestErr2Json(err))
-		return
+	response := new(resp.ResponseInfo)
+	if err := ctx.BindJSON(model.Interface()); err != nil {
+		response = resp.FailureStatus(http.StatusBadRequest, err.Error())
+	} else if model.Elem().FieldByName(c.domain.PKName).String() != pk {
+		response = resp.FailureStatus(http.StatusBadRequest, "different "+c.domain.PKJson+" between path and body")
+	} else {
+		response = c.domain.Update(model.Interface(), pk)
 	}
-	if model.Elem().FieldByName(c.domain.PKName).String() != pk {
-		ctx.JSON(http.StatusBadRequest, resp.BadRequestErr2Json(errors.New("different "+c.domain.PKJson+" between path and body")))
-		return
-	}
-	curModel, errMsg := c.domain.Update(model.Interface(), pk)
-	if errMsg != nil {
-		ctx.JSON(errMsg.Errno, errMsg)
-		return
-	}
-	ctx.JSON(http.StatusOK, curModel)
+	ctx.JSON(response.Code, resp.GetResp(response))
 }
 
 func (c *AbstractController) Delete(ctx *gin.Context) {
 	pk := utils.GetStringParam(ctx, c.domain.PKJson)
-	if errMsg := c.domain.Delete(pk); errMsg != nil {
-		ctx.JSON(errMsg.Errno, errMsg)
-		return
-	}
-	ctx.JSON(http.StatusOK, "OK")
+	response := c.domain.Delete(pk)
+	ctx.JSON(response.Code, resp.GetResp(response))
 }
 
 func (c *AbstractController) GetAll(ctx *gin.Context) {
 	queryCond, err := utils.ParseQueryCond(ctx)
+	response := new(resp.ResponseInfo)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, resp.BadRequestErr2Json(err))
-		return
+		response = resp.FailureStatus(http.StatusBadRequest, err.Error())
+	} else {
+		response = c.domain.GetList(queryCond)
 	}
-	models, errMsg := c.domain.GetList(queryCond)
-	if errMsg != nil {
-		ctx.JSON(errMsg.Errno, errMsg)
-		return
-	}
-	ctx.JSON(http.StatusOK, models)
+	ctx.JSON(response.Code, resp.GetResp(response))
 }

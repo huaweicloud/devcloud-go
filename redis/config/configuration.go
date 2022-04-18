@@ -108,7 +108,7 @@ func LoadConfiguration(yamlFilePath string) (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	yamlFile, err := ioutil.ReadFile(realPath)
+	yamlFile, err := ioutil.ReadFile(filepath.Clean(realPath))
 	if err != nil {
 		return nil, err
 	}
