@@ -68,6 +68,9 @@ func (m *MysqlMock) StartMockMysql() error {
 }
 
 func (m *MysqlMock) StopMockMysql() {
-	m.mysqlServer.Close()
+	if err := m.mysqlServer.Close(); err != nil {
+		log.Println("mysql-server stop failed!")
+		return
+	}
 	log.Println("mysql-server stop!")
 }

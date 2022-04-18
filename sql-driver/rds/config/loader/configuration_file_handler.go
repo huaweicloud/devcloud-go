@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -101,7 +102,7 @@ func (h *ConfigurationFileHandler) Load(hashCode string) *config.RemoteClusterCo
 		log.Printf("WARNING: %v", err)
 		return nil
 	}
-	content, err := ioutil.ReadFile(cacheConfigPath)
+	content, err := ioutil.ReadFile(filepath.Clean(cacheConfigPath))
 	if err != nil {
 		log.Printf("WARNING: read config from local cache file failed, err %v", err)
 		return nil

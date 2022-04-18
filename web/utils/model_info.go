@@ -28,19 +28,16 @@ type ModelInfo struct {
 	PKJson string
 }
 
-func NewModel(model, models interface{}, pkName, pkJson string) *ModelInfo {
+func NewModelInfo(model interface{}, pkName, pkJson string) *ModelInfo {
 	modelInfo := &ModelInfo{
 		Model:  reflect.TypeOf(model),
-		Models: reflect.TypeOf(models),
 		PKName: pkName,
 		PKJson: pkJson,
 	}
 	if modelInfo.Model.Kind() == reflect.Ptr {
 		modelInfo.Model = modelInfo.Model.Elem()
 	}
-	if modelInfo.Models.Kind() == reflect.Ptr {
-		modelInfo.Models = modelInfo.Models.Elem()
-	}
+	modelInfo.Models = reflect.SliceOf(modelInfo.Model)
 	return modelInfo
 }
 

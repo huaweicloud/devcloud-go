@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
@@ -71,7 +72,7 @@ func ReplayExec(client redis.UniversalClient, interrupted, lineIndex *int64, lin
 // Replay Traverse all commands in the file and execute them
 func Replay(filename string, client redis.UniversalClient) bool {
 	var lineIndex, interrupted int64 = 0, 0
-	file, err := os.OpenFile(filename, os.O_APPEND, CacheFilePerm)
+	file, err := os.OpenFile(filepath.Clean(filename), os.O_APPEND, CacheFilePerm)
 	if err != nil {
 		interrupted++
 		log.Println("ERROR: OpenFile " + filename + " failed")
@@ -84,7 +85,10 @@ func Replay(filename string, client redis.UniversalClient) bool {
 			}
 			ReplayExec(client, &interrupted, &lineIndex, line)
 		}
-		file.Close()
+		err = file.Close()
+		if err != nil {
+			log.Println("ERROR: Close File " + filename + " failed")
+		}
 	}
 	if interrupted > 0 {
 		oldFilenameInfo, err := Parse(filename)
@@ -106,20 +110,28 @@ func Replay(filename string, client redis.UniversalClient) bool {
 
 // failDispose Write the execution exception and subsequent contents to the new version number file
 func failDispose(srcPath, dstPath string, startLine int64) {
-	srcFile, err := os.OpenFile(srcPath, os.O_APPEND, CacheFilePerm)
+	srcFile, err := os.OpenFile(filepath.Clean(srcPath), os.O_APPEND, CacheFilePerm)
 	if err != nil {
 		log.Println("ERROR: OpenFile " + srcPath + " failed")
 		return
 	}
-	defer srcFile.Close()
+	defer func() {
+		if err := srcFile.Close(); err != nil {
+			log.Println("ERROR: Close File " + srcPath + " failed")
+		}
+	}()
 	br := bufio.NewReader(srcFile)
 
-	dstFile, err := os.OpenFile(dstPath, os.O_CREATE, CacheFilePerm)
+	dstFile, err := os.OpenFile(filepath.Clean(dstPath), os.O_CREATE, CacheFilePerm)
 	if err != nil {
 		log.Println("ERROR: OpenFile " + dstPath + " failed")
 		return
 	}
-	defer dstFile.Close()
+	defer func() {
+		if err := dstFile.Close(); err != nil {
+			log.Println("ERROR: Close File " + dstPath + " failed")
+		}
+	}()
 	bw := bufio.NewWriter(dstFile)
 	var curLine int64 = 0
 	for {

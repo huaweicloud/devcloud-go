@@ -23,6 +23,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/huaweicloud/devcloud-go/common/etcd"
 	"github.com/huaweicloud/devcloud-go/mas"
@@ -129,7 +130,7 @@ func ValidateClusterConfiguration(configuration *ClusterConfiguration) error {
 
 // Unmarshal yamlConfigFile to *ClusterConfiguration
 func Unmarshal(yamlFilePath string) (*ClusterConfiguration, error) {
-	yamlFile, err := ioutil.ReadFile(yamlFilePath)
+	yamlFile, err := ioutil.ReadFile(filepath.Clean(yamlFilePath))
 	if err != nil {
 		return nil, err
 	}
