@@ -58,7 +58,7 @@ var _ = Describe("Redis", func() {
 		utils.Start2Proxy(redisAddrs, proxyAddrs, proxy.Redis)
 		utils.StartEtcdMock(etcdAddrs, dataDir)
 
-		client, _ = clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "root", Password: "root"})
+		client, _ = clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "XXXX", Password: "XXXX"})
 
 		serversStr, err := json.Marshal(configuration.RedisConfig.Servers)
 		if err != nil {

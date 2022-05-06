@@ -17,8 +17,8 @@ etcd:
 datasource:
   ds0:
     url: tcp(127.0.0.1:3306)/ds0
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
 
 # require
 router:

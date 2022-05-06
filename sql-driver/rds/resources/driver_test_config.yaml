@@ -9,36 +9,36 @@ props:
 etcd:
   address: 127.0.0.1:2379
   apiVersion: v3  # etcd version
-  username: root
-  password: 123456
+  username: XXXX
+  password: XXXX
   httpsEnable: false
 
 # require
 datasource:
   ds0:
     url: tcp(127.0.0.1:13306)/ds0
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
   ds0-slave0:
     url: tcp(127.0.0.1:13306)/ds0-slave0
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
   ds0-slave1:
     url: tcp(127.0.0.1:13306)/ds0-slave1
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
   ds1:
     url: tcp(127.0.0.1:13306)/ds1
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
   ds1-slave0:
     url: tcp(127.0.0.1:13306)/ds1-slave0
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
   ds1-slave1:
     url: tcp(127.0.0.1:13306)/ds1-slave1
-    username: root
-    password: root
+    username: XXXX
+    password: XXXX
 
 # require
 router:

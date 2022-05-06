@@ -36,8 +36,8 @@ func devsporeConfiguration() *config.ClusterConfiguration {
         },
     	EtcdConfig: &etcd.EtcdConfiguration{
             Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
-            Username:    "etcduser",
-            Password:    "etcdpwd",
+            Username:    "XXXX",
+            Password:    "XXXX",
             HTTPSEnable: false,
     	},
     	RouterConfig: &config.RouterConfiguration{
@@ -54,13 +54,13 @@ func devsporeConfiguration() *config.ClusterConfiguration {
     	DataSource: map[string]*config.DataSourceConfiguration{
             "ds1": {
                 URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
-                Username: "root",
-                Password: "123456",
+                Username: "XXXX",
+                Password: "XXXX",
             },
             "ds2": {
                 URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
-                Username: "root",
-                Password: "123456",
+                Username: "XXXX",
+                Password: "XXXX",
             },
     	},
     }
@@ -227,13 +227,13 @@ func devsporeConfiguration() *config.ClusterConfiguration {
         DataSource: map[string]*config.DataSourceConfiguration{
             "ds1": {
                 URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
-                Username: "root",
-                Password: "123456",
+                Username: "XXXX",
+                Password: "XXXX",
             },
             "ds2": {
                 URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
-                Username: "root",
-                Password: "123456",
+                Username: "XXXX",
+                Password: "XXXX",
             },
         },
         Chaos: &mas.InjectionProperties{

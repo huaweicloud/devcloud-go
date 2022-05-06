@@ -47,6 +47,8 @@ func StartEtcdMock(addrs []string, dataDir string) {
 	metadata := mock.NewEtcdMetadata()
 	metadata.ClientAddrs = addrs
 	metadata.DataDir = dataDir
+	metadata.UserName = "XXXX"
+	metadata.Password = "XXXX"
 	EtcdMock = &mock.MockEtcd{}
 	EtcdMock.StartMockEtcd(metadata)
 }
@@ -64,8 +66,8 @@ func Start2MysqlMock(addrs []string) {
 	var err error
 	for _, addr := range addrs {
 		mysqlMock := &mock.MysqlMock{
-			User:         "root",
-			Password:     "123456",
+			User:         "XXXX",
+			Password:     "XXXX",
 			Address:      addr,
 			Databases:    []string{"ds0", "ds0-slave0", "ds0-slave1", "ds1", "ds1-slave0", "ds1-slave1"},
 			MemDatabases: []*memory.Database{createTestDatabase("ds0", "user", addr)},
@@ -118,8 +120,8 @@ func setSourcesNodes(mysqlAddrs []string) (map[string]*mysqlconfig.DataSourceCon
 		stri := strconv.Itoa(i + 1)
 		dataSource["ds"+stri] = &mysqlconfig.DataSourceConfiguration{
 			URL:      "tcp(" + addr + ")/ds0?charset=utf8&parseTime=true",
-			Username: "root",
-			Password: "123456",
+			Username: "XXXX",
+			Password: "XXXX",
 		}
 		nodes["dc"+stri] = &mysqlconfig.NodeConfiguration{
 			Master: "ds" + stri,
@@ -138,8 +140,8 @@ func DCMysql(etcdAddrs, mysqlAddrs []string) *mysqlconfig.ClusterConfiguration {
 		},
 		EtcdConfig: &etcd.EtcdConfiguration{
 			Address:     etcdAddrs[0],
-			Username:    "root",
-			Password:    "root",
+			Username:    "XXXX",
+			Password:    "XXXX",
 			HTTPSEnable: false,
 		},
 		RouterConfig: &mysqlconfig.RouterConfiguration{
@@ -169,7 +171,7 @@ func DCMysql(etcdAddrs, mysqlAddrs []string) *mysqlconfig.ClusterConfiguration {
 func Start2RedisMock(addrs []string) {
 	var err error
 	for _, addr := range addrs {
-		redisMock := &mock.RedisMock{Addr: addr, Password: "123456"}
+		redisMock := &mock.RedisMock{Addr: addr, Password: "XXXX"}
 		err = redisMock.StartMockRedis()
 		if err != nil {
 			log.Fatalln(err)
@@ -187,7 +189,7 @@ func Stop2RedisMock() {
 
 func addTestData(redisMock *mock.RedisMock) {
 	ctx := context.Background()
-	rdb1 := goredis.NewClient(&goredis.Options{Addr: redisMock.Addr, Password: "123456"})
+	rdb1 := goredis.NewClient(&goredis.Options{Addr: redisMock.Addr, Password: "XXXX"})
 	rdb1.Set(ctx, "key", redisMock.Addr, 0)
 	_ = rdb1.Close()
 }
@@ -198,7 +200,7 @@ func setServers(redisAddrs []string) map[string]*redisconfig.ServerConfiguration
 		stri := strconv.Itoa(i + 1)
 		servers["ds"+stri] = &redisconfig.ServerConfiguration{
 			Hosts:    addr,
-			Password: "123456",
+			Password: "XXXX",
 			Type:     redisconfig.ServerTypeNormal,
 			Cloud:    "huawei cloud",
 			Region:   "beijing",
@@ -218,8 +220,8 @@ func DCRedis(etcdAddrs, redisAddrs []string) *redisconfig.Configuration {
 		},
 		EtcdConfig: &etcd.EtcdConfiguration{
 			Address:     etcdAddrs[0],
-			Username:    "root",
-			Password:    "root",
+			Username:    "XXXX",
+			Password:    "XXXX",
 			HTTPSEnable: false,
 		},
 		RedisConfig: &redisconfig.RedisConfiguration{

@@ -8,8 +8,8 @@ props:
 etcd: # Optional
   address: 127.0.0.1:2379
   apiVersion: v3
-  username: root
-  password: 123456
+  username: XXXX
+  password: XXXX
   httpsEnable: false
 redis:
   redisGroupName: xxx-redis-group

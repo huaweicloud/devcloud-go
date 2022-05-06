@@ -32,7 +32,7 @@ func main()  {
     mockEtcd.StartMockEtcd(metadata)
     defer mockEtcd.StopMockEtcd()
     
-    client, err := clientv3.New(clientv3.Config{Endpoints: addrs, Username: "root", Password: "root"})
+    client, err := clientv3.New(clientv3.Config{Endpoints: addrs, Username: "XXXX", Password: "XXXX"})
     defer func(client *clientv3.Client) {
         err = client.Close()
         if err != nil {
@@ -72,8 +72,8 @@ import (
 
 func main() {
     metadata := mock.MysqlMock{
-        User:         "root",
-        Password:     "root",
+        User:         "XXXX",
+        Password:     "XXXX",
         Address:      "127.0.0.1:3318",
         Databases:    []string{"mydb"},
         MemDatabases: []*memory.Database{createTestDatabase("mydb", "user")},

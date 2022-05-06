@@ -44,7 +44,7 @@ func TestRedisMas(t *testing.T) {
 	utils.StartEtcdMock(etcdAddrs, dataDir)
 	defer utils.StopEtcdMock(dataDir)
 
-	client, _ := clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "root", Password: "root"})
+	client, _ := clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "XXXX", Password: "XXXX"})
 	defer func() {
 		_ = client.Close()
 	}()
