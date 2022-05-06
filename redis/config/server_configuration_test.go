@@ -35,7 +35,7 @@ func TestServerConfigurationConvertOptions(t *testing.T) {
 		if serverName == "dc1" {
 			assert.NotNil(t, serverConfig.Options)
 			assert.Equal(t, "127.0.0.1:6379", serverConfig.Options.Addr)
-			assert.Equal(t, "123456!!!", serverConfig.Options.Password)
+			assert.Equal(t, "XXXX!!!", serverConfig.Options.Password)
 			assert.Equal(t, 100, serverConfig.Options.PoolSize)
 			assert.Equal(t, 0, serverConfig.Options.MinIdleConns)
 			assert.Equal(t, time.Duration(1000)*time.Millisecond, serverConfig.Options.IdleCheckFrequency)
@@ -43,7 +43,7 @@ func TestServerConfigurationConvertOptions(t *testing.T) {
 		} else if serverName == "dc2" {
 			assert.NotNil(t, serverConfig.ClusterOptions)
 			assert.Equal(t, []string{"127.0.0.1:6380", "127.0.0.1:6381"}, serverConfig.ClusterOptions.Addrs)
-			assert.Equal(t, "123456!!!", serverConfig.ClusterOptions.Password)
+			assert.Equal(t, "XXXX!!!", serverConfig.ClusterOptions.Password)
 			assert.Equal(t, 100, serverConfig.ClusterOptions.PoolSize)
 			assert.Equal(t, 0, serverConfig.ClusterOptions.MinIdleConns)
 			assert.Equal(t, time.Duration(1000)*time.Millisecond, serverConfig.ClusterOptions.IdleCheckFrequency)

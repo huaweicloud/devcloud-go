@@ -38,8 +38,8 @@ var _ = Describe("CRUD", func() {
 		activeNode *datasource.NodeDataSource
 	)
 	metadata := mock.MysqlMock{
-		User:      "root",
-		Password:  "root",
+		User:      "XXXX",
+		Password:  "XXXX",
 		Address:   "127.0.0.1:13306",
 		Databases: []string{"ds0", "ds0-slave0", "ds0-slave1", "ds1", "ds1-slave0", "ds1-slave1"},
 	}

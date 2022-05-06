@@ -47,7 +47,7 @@ func TestMysqlMas(t *testing.T) {
 	utils.StartEtcdMock(etcdAddrs, dataDir)
 	defer utils.StopEtcdMock(dataDir)
 
-	client, err := clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "root", Password: "root"})
+	client, err := clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "XXXX", Password: "XXXX"})
 	if err != nil {
 		log.Fatalln(err)
 	}

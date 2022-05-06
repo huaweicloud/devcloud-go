@@ -43,7 +43,7 @@ func main() {
     servers := map[string]*config.ServerConfiguration{
         "server1": {
             Hosts:      "127.0.0.0:6379",
-            Password:   "123456",
+            Password:   "XXXX",
             Type:       config.ServerTypeNormal,
             Cloud:      "huawei cloud",
             Region:     "beijing",
@@ -77,8 +77,8 @@ props:
 etcd: # Optional
   address: 127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379
   apiVersion: v3
-  username: root
-  password: root
+  username: XXXX
+  password: XXXX
   httpsEnable: false
 redis:
   redisGroupName: xxx-redis-group
@@ -174,7 +174,7 @@ func DCRedis(etcdAddrs, redisAddrs []string) *redisconfig.Configuration {
         stri := strconv.Itoa(i + 1)
         servers["ds"+stri] = &redisconfig.ServerConfiguration{
             Hosts:    addr,
-            Password: "123456",
+            Password: "XXXX",
             Type:     redisconfig.ServerTypeNormal,
             Cloud:    "huawei cloud",
             Region:   "beijing",

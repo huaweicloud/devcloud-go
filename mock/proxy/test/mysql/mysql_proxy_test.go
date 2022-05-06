@@ -61,7 +61,7 @@ var _ = Describe("Mysql", func() {
 		utils.Start2Proxy(mysqlAddrs, proxyAddrs, proxy.Mysql)
 		utils.StartEtcdMock(etcdAddrs, dataDir)
 
-		client, err = clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "root", Password: "root"})
+		client, err = clientv3.New(clientv3.Config{Endpoints: etcdAddrs, Username: "XXXX", Password: "XXXX"})
 
 		datasourceStr, err := json.Marshal(clusterConfiguration.DataSource)
 		if err != nil {
