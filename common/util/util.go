@@ -21,9 +21,13 @@ import (
 	"log"
 	"math"
 	"net"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
+
+const httpPrefix = "https://"
 
 // ValidateHostPort validate that hostPort is correct.
 func ValidateHostPort(hostPort string) error {
@@ -46,7 +50,8 @@ func ValidateHostPort(hostPort string) error {
 }
 
 // ConvertAddressStrToSlice convert address like "127.0.0.1:2379,127.0.0.1:2380" to endpoints like ["127.0.0.1:2379", "127.0.0.1:2380"]
-func ConvertAddressStrToSlice(addressStr string) []string {
+// if enableHttps, the func will convert address to endpoints like ["https://127.0.0.1:2379","https://127.0.0.1:2380"]
+func ConvertAddressStrToSlice(addressStr string, enableHttps bool) []string {
 	addressSlice := strings.Split(addressStr, ",")
 	var res []string
 	for _, address := range addressSlice {
@@ -57,6 +62,9 @@ func ConvertAddressStrToSlice(addressStr string) []string {
 		if err := ValidateHostPort(address); err != nil {
 			log.Printf("ERROR: hostPort '%s' is invalid, %v", address, err)
 			continue
+		}
+		if enableHttps {
+			address = httpPrefix + address
 		}
 		res = append(res, address)
 	}
@@ -84,4 +92,15 @@ func GetNearest2Power(old int) int {
 		return 1 << 30
 	}
 	return n + 1
+}
+
+func FileExists(filePath string) bool {
+	_, err := os.Stat(filepath.Clean(filePath))
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		return false
+	}
+	return true
 }

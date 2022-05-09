@@ -50,7 +50,7 @@ func NewClusterDataSource(clusterConfiguration *config.ClusterConfiguration) (*C
 		region              string
 	)
 	if clusterConfiguration.Props != nil {
-		remoteConfiguration = remoteConfigurationLoader.GetConfiguration(clusterConfiguration.Props.CalHashCode())
+		remoteConfiguration = remoteConfigurationLoader.GetConfiguration()
 		region = clusterConfiguration.Props.Region
 	}
 	integrationClusterConfiguration := &config.IntegrationClusterConfiguration{

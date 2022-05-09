@@ -40,7 +40,70 @@ var (
 		MonitorID:    monitorId,
 		DatabaseName: databaseName,
 	}
-	wrongEtcdAddress = "127.0.0.1:2381"
+	dataSources = map[string]*config.RemoteDataSourceConfiguration{
+		"ds0": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-1",
+			Schema:   "ds0",
+			Username: "root",
+		},
+		"ds0-slave0": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-1",
+			Schema:   "ds0-slave0",
+			Username: "root",
+		},
+		"ds0-slave1": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-1",
+			Schema:   "ds0-slave1",
+			Username: "root",
+		},
+		"ds1": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-2",
+			Schema:   "ds1",
+			Username: "root",
+		},
+		"ds1-slave0": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-2",
+			Schema:   "ds1-slave0",
+			Username: "root",
+		},
+		"ds1-slave1": {
+			Server:   "127.0.0.1:3306",
+			Cloud:    "huaweicloud",
+			Region:   "cn-north-2",
+			Schema:   "ds1-slave1",
+			Username: "root",
+		},
+	}
+	routerConfig = &config.RouterConfiguration{
+		Active:         "c0",
+		RouteAlgorithm: "single-read-write",
+		Retry: &config.RetryConfiguration{
+			Times: "10",
+			Delay: "50",
+		},
+		Nodes: map[string]*config.NodeConfiguration{
+			"c0": {
+				Master:      "ds0",
+				LoadBalance: "RANDOM",
+				Slaves:      []string{"ds0-slave0", "ds0-slave1"},
+			},
+			"c1": {
+				Master:      "ds1",
+				LoadBalance: "ROUND_ROBIN",
+				Slaves:      []string{"ds1-slave0", "ds1-slave1"},
+			},
+		},
+	}
 )
 
 func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
@@ -48,7 +111,7 @@ func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	mockClient := &mocks.EtcdClient{}
 	loader.etcdClient = mockClient
 	createRemoteConfiguration(mockClient, loader)
-	remoteConfiguration := loader.GetConfiguration(props.CalHashCode())
+	remoteConfiguration := loader.GetConfiguration()
 
 	assert.NotNil(t, remoteConfiguration)
 	assert.NotNil(t, remoteConfiguration.DataSources)
@@ -56,57 +119,6 @@ func TestRemoteConfigurationLoader_GetConfiguration(t *testing.T) {
 	assert.NotNil(t, remoteConfiguration.RouterConfig)
 	_, ok := remoteConfiguration.DataSources["ds0"]
 	assert.True(t, ok)
-
-	err := removeTempFile(props.CalHashCode())
-	if err != nil {
-		log.Println(err)
-	}
-	assert.Nil(t, err)
-}
-
-func removeTempFile(hashCode string) error {
-	fileHandler := NewConfigurationFileHandler()
-	filePath := fileHandler.getCompleteCacheFilePath(hashCode)
-	return os.RemoveAll(filePath)
-}
-
-func TestGetConfigurationFromCache(t *testing.T) {
-	handler := NewConfigurationFileHandler()
-	// remove defaultCacheConfigFile if exists
-	if _, err := os.Stat(handler.cacheFilePath); err == nil {
-		if err := os.Remove(handler.cacheFilePath); err != nil {
-			t.Log("remove cache file failed")
-			return
-		}
-	}
-	handler.Save(&config.RemoteClusterConfiguration{
-		DataSources:  dataSources,
-		RouterConfig: routerConfig}, props.CalHashCode())
-
-	wrongEtcdConfiguration := getEtcdConfiguration()
-	wrongEtcdConfiguration.Address = wrongEtcdAddress
-	loader := NewRemoteConfigurationLoader(props, wrongEtcdConfiguration)
-	loader.Init()
-	defer func() {
-		err := loader.Close()
-		if err != nil {
-			t.Errorf("close remote configuration loader err, %v", err)
-		}
-	}()
-
-	localConfiguration := loader.GetConfiguration(props.CalHashCode())
-	assert.NotNil(t, localConfiguration)
-	assert.NotNil(t, localConfiguration.DataSources)
-	assert.Equal(t, len(localConfiguration.DataSources), 6)
-	assert.NotNil(t, localConfiguration.RouterConfig)
-	_, ok := localConfiguration.DataSources["ds0"]
-	assert.True(t, ok)
-
-	err := removeTempFile(props.CalHashCode())
-	if err != nil {
-		log.Println(err)
-	}
-	assert.Nil(t, err)
 }
 
 func createRemoteConfiguration(mockClient *mocks.EtcdClient, loader *RemoteConfigurationLoader) {
