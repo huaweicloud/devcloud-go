@@ -20,6 +20,9 @@ type ClientProperties struct {
 	UserName           string
 	Password           string
 	NeedAuthentication bool
+	ClientCert         string
+	ClientKey          string
+	CaCert             string
 }
 
 // KeyValue is etcd-Kv Simplified version
@@ -36,4 +39,7 @@ type EtcdConfiguration struct {
 	Username    string `yaml:"username"`
 	Password    string `yaml:"password"`
 	HTTPSEnable bool   `yaml:"httpsEnable"`
+	ClientCert  string `yaml:"clientCert"` // etcd cert file
+	ClientKey   string `yaml:"clientKey"`  // etcd cert-key file
+	CaCert      string `yaml:"caCert"`     // etcd ca file
 }

@@ -16,7 +16,10 @@ package etcd
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -45,6 +48,23 @@ func NewEtcdV3Client(props *ClientProperties) (*EtcdV3Client, error) {
 	if props.NeedAuthentication {
 		config.Username = props.UserName
 		config.Password = props.Password
+	}
+	if props.CaCert != "" && props.ClientCert != "" && props.ClientKey != "" {
+		cert, err := tls.LoadX509KeyPair(props.ClientCert, props.ClientKey)
+		if err != nil {
+			return nil, err
+		}
+		caData, err := ioutil.ReadFile(props.CaCert)
+		if err != nil {
+			return nil, err
+		}
+		pool := x509.NewCertPool()
+		pool.AppendCertsFromPEM(caData)
+
+		config.TLS = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			RootCAs:      pool,
+		}
 	}
 
 	client, err := clientv3.New(*config)

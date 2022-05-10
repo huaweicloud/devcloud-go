@@ -92,7 +92,7 @@ func TestConvertAddressStrToSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ConvertAddressStrToSlice(tt.args.addressStr); !reflect.DeepEqual(got, tt.want) {
+			if got := ConvertAddressStrToSlice(tt.args.addressStr, false); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ConvertAddressStrToSlice() = %v, want %v", got, tt.want)
 			}
 		})

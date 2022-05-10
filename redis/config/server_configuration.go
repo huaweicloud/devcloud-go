@@ -54,7 +54,7 @@ const (
 func (s *ServerConfiguration) convertOptions() {
 	if s.Type == ServerTypeCluster {
 		clusterOpts := &redis.ClusterOptions{
-			Addrs: util.ConvertAddressStrToSlice(s.Hosts),
+			Addrs: util.ConvertAddressStrToSlice(s.Hosts, false),
 		}
 		if len(s.Password) > 0 {
 			clusterOpts.Password = password.GetDecipher().Decode(s.Password)

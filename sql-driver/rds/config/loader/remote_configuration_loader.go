@@ -60,35 +60,33 @@ func NewRemoteConfigurationLoader(props *mas.PropertiesConfiguration,
 	return loader
 }
 
-// GetConfiguration form etcd, or from local cache
-func (l *RemoteConfigurationLoader) GetConfiguration(hashCode string) *config.RemoteClusterConfiguration {
-	handler := NewConfigurationFileHandler()
+// GetConfiguration form etcd
+func (l *RemoteConfigurationLoader) GetConfiguration() *config.RemoteClusterConfiguration {
 	if l.etcdClient == nil {
-		return handler.Load(hashCode)
+		log.Printf("ERROR: get etcd client failed, etcd client is nil")
+		return nil
 	}
 
 	dataSourceConfig, err := l.etcdClient.Get(l.dataSourceKey)
 	if err != nil || dataSourceConfig == "" {
 		log.Printf("ERROR: get remote datasourceConfig failed, %v", err)
-		return handler.Load(hashCode)
+		return nil
 	}
 
 	routerConfig, err := l.etcdClient.Get(l.routerKey)
 	if err != nil || routerConfig == "" {
 		log.Printf("ERROR: get remote routerConfig failed, %v", err)
-		return handler.Load(hashCode)
+		return nil
 	}
 
 	remoteClusterConfiguration := config.NewRemoteClusterConfiguration(dataSourceConfig, routerConfig)
 	active, err := l.etcdClient.Get(l.activeKey)
 	if err != nil {
 		log.Printf("ERROR: get remote active failed, %v", err)
-		return handler.Load(hashCode)
+		return nil
 	}
 
 	remoteClusterConfiguration.RouterConfig.Active = active
-	// save file to local
-	handler.Save(remoteClusterConfiguration, hashCode)
 	return remoteClusterConfiguration
 }
 

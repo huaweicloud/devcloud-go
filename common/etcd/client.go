@@ -21,6 +21,7 @@ package etcd
 
 import (
 	"log"
+	"path/filepath"
 
 	"github.com/huaweicloud/devcloud-go/common/password"
 	"github.com/huaweicloud/devcloud-go/common/util"
@@ -40,12 +41,21 @@ type EtcdClient interface {
 // CreateEtcdClient according to yaml etcdConfiguration
 func CreateEtcdClient(etcdConfiguration *EtcdConfiguration) EtcdClient {
 	properties := &ClientProperties{
-		Endpoints: util.ConvertAddressStrToSlice(etcdConfiguration.Address),
+		Endpoints: util.ConvertAddressStrToSlice(etcdConfiguration.Address, etcdConfiguration.HTTPSEnable),
 	}
 	if etcdConfiguration.Username != "" {
 		properties.UserName = etcdConfiguration.Username
 		properties.Password = password.GetDecipher().Decode(etcdConfiguration.Password)
 		properties.NeedAuthentication = true
+	}
+	if etcdConfiguration.HTTPSEnable {
+		if etcdConfiguration.CaCert != "" && util.FileExists(etcdConfiguration.CaCert) &&
+			etcdConfiguration.ClientCert != "" && util.FileExists(etcdConfiguration.ClientCert) &&
+			etcdConfiguration.ClientKey != "" && util.FileExists(etcdConfiguration.ClientKey) {
+			properties.CaCert = filepath.Clean(etcdConfiguration.CaCert)
+			properties.ClientCert = filepath.Clean(etcdConfiguration.ClientCert)
+			properties.ClientKey = filepath.Clean(etcdConfiguration.ClientKey)
+		}
 	}
 	client, err := NewEtcdV3Client(properties)
 	if err != nil || client == nil {
