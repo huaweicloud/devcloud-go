@@ -27,7 +27,7 @@ import (
 	"strings"
 )
 
-const httpPrefix = "https://"
+const httpsPrefix = "https://"
 
 // ValidateHostPort validate that hostPort is correct.
 func ValidateHostPort(hostPort string) error {
@@ -64,7 +64,7 @@ func ConvertAddressStrToSlice(addressStr string, enableHttps bool) []string {
 			continue
 		}
 		if enableHttps {
-			address = httpPrefix + address
+			address = httpsPrefix + address
 		}
 		res = append(res, address)
 	}
