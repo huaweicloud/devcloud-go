@@ -1,3 +1,15 @@
+#### 2022-05-10
+version: github.com/huaweicloud/devcloud-go v1.0.2  
+feature:
+1. etcd supports https.
+2. sql-driver remove write configurations to local.
+3. security inspection.
+
+#### 2022-04-18
+version: github.com/huaweicloud/devcloud-go v1.0.1  
+feature:
+1. refactor web package resp.
+
 #### 2022-03-18
 version: github.com/huaweicloud/devcloud-go v1.0.0  
 feature:
