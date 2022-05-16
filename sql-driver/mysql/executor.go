@@ -23,7 +23,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/huaweicloud/devcloud-go/mas"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/datasource"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/router"
@@ -75,21 +74,16 @@ type executorResp struct {
 }
 
 type executor struct {
-	exclusives          sync.Map
-	retryTimes          int
-	retryDelay          int // ms
-	injectionManagement *mas.InjectionManagement
+	exclusives sync.Map
+	retryTimes int
+	retryDelay int // ms
 }
 
-func newExecutor(retry *config.RetryConfiguration, chaos *mas.InjectionProperties) *executor {
+func newExecutor(retry *config.RetryConfiguration) *executor {
 	e := &executor{
 		retryTimes: defaultRetryTimes,
 		retryDelay: defaultRetryDelay,
 		exclusives: sync.Map{},
-	}
-	if chaos != nil {
-		e.injectionManagement = mas.NewInjectionManagement(chaos)
-		e.injectionManagement.SetError(mas.MysqlErrors())
 	}
 	if retry != nil && retry.Times != "" {
 		if retryTimes, err := strconv.Atoi(retry.Times); err != nil {
@@ -103,21 +97,9 @@ func newExecutor(retry *config.RetryConfiguration, chaos *mas.InjectionPropertie
 	}
 	return e
 }
-func (e *executor) beforeTryExecute() *executorResp {
-	err := e.injectionManagement.Inject()
-	if err != nil {
-		return &executorResp{
-			err: err,
-		}
-	}
-	return nil
-}
 
 // from cluster datasource choose a node datasource
 func (e *executor) tryExecute(req *executorReq) *executorResp {
-	if err := e.beforeTryExecute(); err != nil {
-		return err
-	}
 	// insure parse sql only once
 	isSQLOnlyRead := util.IsOnlyRead(req.query)
 	// route node datasource
@@ -140,7 +122,7 @@ nodeRetry:
 		nodeRuntimeCtx := &router.RuntimeContext{
 			DataSource:    nodeTargetDataSource,
 			InTransaction: req.dc.inTransaction,
-			RequestId:     idGenerator.Generate().Int64(),
+			RequestId:     idGenerator.GetId(),
 		}
 		actualExclusives := e.filterExclusive()
 		targetDataSource := router.NewNodeRouter().Route(isSQLOnlyRead, nodeRuntimeCtx, actualExclusives)

@@ -16,41 +16,28 @@
 package strategy
 
 import (
-	"context"
 	"log"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/huaweicloud/devcloud-go/mas"
 	"github.com/huaweicloud/devcloud-go/redis/config"
 )
 
 type abstractStrategy struct {
-	ClientPool          map[string]redis.UniversalClient
-	Configuration       *config.Configuration
-	injectionManagement *mas.InjectionManagement
+	ClientPool    map[string]redis.UniversalClient
+	Configuration *config.Configuration
 }
 
 func newAbstractStrategy(configuration *config.Configuration) abstractStrategy {
 	strategy := abstractStrategy{
 		Configuration: configuration,
 		ClientPool:    map[string]redis.UniversalClient{}}
-	if configuration.Chaos != nil {
-		strategy.injectionManagement = mas.NewInjectionManagement(configuration.Chaos)
-		strategy.injectionManagement.SetError(mas.RedisErrors())
-		strategy.initClients(true)
-	} else {
-		strategy.initClients(false)
-	}
+	strategy.initClients()
 	return strategy
 }
 
-func (a *abstractStrategy) initClients(chaos bool) {
+func (a *abstractStrategy) initClients() {
 	for name, serverConfig := range a.Configuration.RedisConfig.Servers {
-		client := newClient(serverConfig)
-		if chaos {
-			client.AddHook(a)
-		}
-		a.ClientPool[name] = client
+		a.ClientPool[name] = newClient(serverConfig)
 	}
 }
 
@@ -107,24 +94,4 @@ func newClient(serverConfig *config.ServerConfiguration) redis.UniversalClient {
 		client = redis.NewClient(serverConfig.Options)
 	}
 	return client
-}
-
-func (a *abstractStrategy) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	err := a.injectionManagement.Inject()
-	if err != nil {
-		return nil, err
-	}
-	return ctx, nil
-}
-
-func (a *abstractStrategy) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	return nil
-}
-
-func (a *abstractStrategy) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
-	return ctx, nil
-}
-
-func (a *abstractStrategy) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
-	return nil
 }

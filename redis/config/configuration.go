@@ -35,7 +35,6 @@ type Configuration struct {
 	RedisConfig    *RedisConfiguration          `yaml:"redis"`
 	RouteAlgorithm string                       `yaml:"routeAlgorithm"`
 	Active         string                       `yaml:"active"`
-	Chaos          *mas.InjectionProperties     `yaml:"chaos"`
 }
 
 // OnChanged when remote etcd active key changed, change the Configuration's active server.

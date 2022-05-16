@@ -15,8 +15,11 @@
 package util
 
 import (
+	"errors"
 	"math/rand"
 	"net"
+	"sync"
+	"time"
 )
 
 // GetWorkerIDByIp use ip low 10 bit to generate workerID
@@ -42,4 +45,50 @@ func getIp() (string, error) {
 		}
 	}
 	return "", err
+}
+
+const (
+	nodeBits  uint8 = 10
+	numBits   uint8 = 12
+	nodeMax   int64 = -1 ^ (-1 << nodeBits)
+	numMax    int64 = -1 ^ (-1 << numBits)
+	timeShift uint8 = nodeBits + numBits
+	nodeShift uint8 = numBits
+	startTime int64 = 1525705533000
+)
+
+type Node struct {
+	timestamp int64
+	nodeId    int64
+	num       int64
+	mu        sync.Mutex
+}
+
+func NewNode(nodeId int64) (*Node, error) {
+	if nodeId < 0 || nodeId > nodeMax {
+		return nil, errors.New("node id excess of quantity")
+	}
+	return &Node{
+		nodeId:    nodeId,
+		num:       0,
+		timestamp: 0,
+	}, nil
+}
+
+func (w *Node) GetId() int64 {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	now := time.Now().UnixNano() / 1e6
+	if w.timestamp == now {
+		w.num++
+		if w.num > numMax {
+			for now <= w.timestamp {
+				now = time.Now().UnixNano() / 1e6
+			}
+		}
+	} else {
+		w.num = 0
+		w.timestamp = now
+	}
+	return (now-startTime)<<timeShift | (w.nodeId << nodeShift) | (w.num)
 }
