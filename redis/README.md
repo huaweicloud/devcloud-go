@@ -3,11 +3,11 @@
 ### Introduction
 Currently, the Redis supports three modes.single-read-write,local-read-single-write and double-write
 ##### single-read-write
-![image](../img/redis-single-read-write.png)
+![image](../mas/img/redis-single-read-write.png)
 ##### local-read-single-write
-![image](../img/redis-local-read-single-write.png)
+![image](../mas/img/redis-local-read-single-write.png)
 ##### double-write
-![image](../img/redis-double-write.png)
+![image](../mas/img/redis-double-write.png)
 ### Quickstart：
 1. use yaml configuartion file
 ```bigquery
@@ -75,7 +75,7 @@ props:
   region: cn-north-4
   azs: az1 
 etcd: # Optional
-  address: 127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379
+  address: xxx.xxx.xxx.xxx:xxxx,xxx.xxx.xxx.xxx:xxxx,xxx.xxx.xxx.xxx:xxxx
   apiVersion: v3
   username: XXXX
   password: XXXX
@@ -89,7 +89,7 @@ redis:
     enable: true
   servers:
     dc1:
-      hosts: 127.0.0.1:6379
+      hosts: xxx.xxx.xxx.xxx:xxxx
       password: password
       type: normal  # cluster, master-slave, normal
       cloud: huaweicloud  # cloud
@@ -102,7 +102,7 @@ redis:
         maxWaitMillis: 10000
         timeBetweenEvictionRunsMillis: 1000
     dc2:
-      hosts: 127.0.0.1:6380
+      hosts: xxx.xxx.xxx.xxx:xxxx
       password: password
       type: master-slave  # cluster, master-slave, normal
       cloud: huaweicloud  # cloud
@@ -137,7 +137,7 @@ redis:
     persistDir: dataDir/
   servers:
     dc1:
-      hosts: 127.0.0.1:6379
+      hosts: xxx.xxx.xxx.xxx:xxxx
       password:
       type: normal  # cluster, master-slave, normal
       cloud: huaweicloud  # cloud
@@ -150,7 +150,7 @@ redis:
         maxWaitMillis: 10000
         timeBetweenEvictionRunsMillis: 1000
     dc2:
-      hosts: 127.0.0.1:6380
+      hosts: xxx.xxx.xxx.xxx:xxxx
       password:
       type: normal  # cluster, master-slave, normal
       cloud: huaweicloud  # cloud
@@ -164,64 +164,6 @@ redis:
         timeBetweenEvictionRunsMillis: 1000
 routeAlgorithm: double-write  # local-read-single-write, single-read-write, double-write
 active: dc2
-```
-### Fault injection
-Redis also supports the creation of services with fault injection. The configuration is similar to that of MySQL.
-```bigquery
-func DCRedis(etcdAddrs, redisAddrs []string) *redisconfig.Configuration {
-    servers := make(map[string]*redisconfig.ServerConfiguration)
-    for i, addr := range redisAddrs {
-        stri := strconv.Itoa(i + 1)
-        servers["ds"+stri] = &redisconfig.ServerConfiguration{
-            Hosts:    addr,
-            Password: "XXXX",
-            Type:     redisconfig.ServerTypeNormal,
-            Cloud:    "huawei cloud",
-            Region:   "beijing",
-            Azs:      "az1",
-        }
-    }
-    configuration := &redisconfig.Configuration{
-        RedisConfig: &redisconfig.RedisConfiguration{
-            Servers: servers,
-        },
-        RouteAlgorithm: "single-read-write",
-        Active:         "ds1",
-        Chaos: &mas.InjectionProperties{
-            Active:     true,
-            Duration:   50,
-            Interval:   100,
-            Percentage: 100,
-            DelayInjection: &mas.DelayInjection{
-                Active:     true,
-                Percentage: 100,
-                TimeMs:     1000,
-                JitterMs:   500,
-            },
-            ErrorInjection: &mas.ErrorInjection{
-                Active:     true,
-                Percentage: 30,
-            },
-        },
-    }
-    return configuration
-}
-```
-Alternatively, add the following configuration to the configuration file:
-```bigquery
-chaos:
-  active: true
-  duration: 50
-  interval: 100
-  percentage: 100
-  delayInjection:
-    active: true
-    percentage: 100
-    timeMs: 1000
-    jitterMs: 500
-  errorInjection:
-    active: true
-    percentage: 20
 ```
 ### Testing
 package commands_test needs redis 6.2.0+, so if your redis is redis 5.0+, you need to execute 
@@ -241,7 +183,6 @@ See more usages of ginkgo in **https://github.com/onsi/ginkgo**
 <tr><td>redis</td><td>RedisConfiguration</td><td>For details,see the description of the data structure of RedisConfiguration</td><td>RedisServer configuration</td></tr>
 <tr><td>routeAlgorithm</td><td>string</td><td>single-read-write,local-read-single-write,double-write</td><td>Routing algorithm</td></tr>
 <tr><td>active</td><td>string</td><td>The value can only be dc1 or dc2</td><td>Activated Redis</td></tr>
-<tr><td>chaos</td><td>InjectionProperties</td><td>For details,see the description of the data structure of InjectionProperties</td><td>Fault Injection Configuration</td></tr>
 </tbody>
 </table>
 
@@ -317,22 +258,5 @@ See more usages of ginkgo in **https://github.com/onsi/ginkgo**
 <tr><td>minIdle</td><td>int</td><td>-</td><td>Minimum number of objects that can remain in the idle state</td></tr>
 <tr><td>maxWaitMillis</td><td>int</td><td>-</td><td>Maximum wait time when no object is returned in the pool</td></tr>
 <tr><td>timeBetweenEvictionRunsMillis</td><td>int</td><td>-</td><td>Idle link detection thread,detection interval,in milliseconds.A negative value indicates that the detection thread is not running</td></tr>
-</tbody>
-</table>
-
-<table width="100%">
-<thead><b>InjectionProperties</b></thead>
-<tbody>
-<tr><th>Parameter Name</th><th>Parameter Type</th><th>Value range</th><th>Description</th></tr>
-<tr><td>active</td><td>bool</td><td>true/false</td><td>Whether the fault injection function is enabled</td></tr>
-<tr><td>duration</td><td>int</td><td>-</td><td>Fault injection duration,in seconds</td></tr>
-<tr><td>interval</td><td>int</td><td>-</td><td>Fault injection interval,in seconds</td></tr>
-<tr><td>percentage</td><td>int</td><td>0-100</td><td>Injection failure probability</td></tr>
-<tr><td>delayInjection.active</td><td>bool</td><td>true/false</td><td>Delay injection switch</td></tr>
-<tr><td>delayInjection.percentage</td><td>int</td><td>0-100</td><td>Delayed Fault Effective Probability</td></tr>
-<tr><td>delayInjection.timeMs</td><td>int</td><td>-</td><td>Indicates the delay base,in milliseconds</td></tr>
-<tr><td>delayInjection.jitterMs</td><td>int</td><td>-</td><td>Indicates the jitter amplitude of the delay, in milliseconds</td></tr>
-<tr><td>errorInjection.active</td><td>bool</td><td>true/false</td><td>Abnormal injection switch</td></tr>
-<tr><td>errorInjection.percentage</td><td>int</td><td>0-100</td><td>Abnormal Fault Effective Probability</td></tr>
 </tbody>
 </table>

@@ -49,8 +49,8 @@ func ValidateHostPort(hostPort string) error {
 	return nil
 }
 
-// ConvertAddressStrToSlice convert address like "127.0.0.1:2379,127.0.0.1:2380" to endpoints like ["127.0.0.1:2379", "127.0.0.1:2380"]
-// if enableHttps, the func will convert address to endpoints like ["https://127.0.0.1:2379","https://127.0.0.1:2380"]
+// ConvertAddressStrToSlice convert address like "xxx.xxx.xxx.xxx:xxxx,xxx.xxx.xxx.xxx:xxxx" to endpoints like ["xxx.xxx.xxx.xxx:xxxx", "xxx.xxx.xxx.xxx:xxxx"]
+// if enableHttps, the func will convert address to endpoints like ["https://xxx.xxx.xxx.xxx:xxxx","https://xxx.xxx.xxx.xxx:xxxx"]
 func ConvertAddressStrToSlice(addressStr string, enableHttps bool) []string {
 	addressSlice := strings.Split(addressStr, ",")
 	var res []string

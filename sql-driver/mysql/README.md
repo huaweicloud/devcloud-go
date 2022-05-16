@@ -4,9 +4,9 @@
 Currently, MySQL supports two modes.single-read-write and local-read-single-write.
 In addition, read/write separation is supported, which can be configured as random or RoundRobin.
 ##### single-read-write
-![image](../../img/mysql-single-read-write.png)
+![image](../../mas/img/mysql-single-read-write.png)
 ##### local-read-single-write
-![image](../../img/mysql-local-read-single-write.png)
+![image](../../mas/img/mysql-local-read-single-write.png)
 ### Quickstart：
 ```bigquery
 import (
@@ -35,7 +35,7 @@ func devsporeConfiguration() *config.ClusterConfiguration {
             DatabaseName: "xx",
         },
     	EtcdConfig: &etcd.EtcdConfiguration{
-            Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
+            Address:     "xxx.xxx.xxx.xxx:xxxx,xxx.xxx.xxx.xxx:xxxx,xxx.xxx.xxx.xxx:xxxx",
             Username:    "XXXX",
             Password:    "XXXX",
             HTTPSEnable: false,
@@ -53,12 +53,12 @@ func devsporeConfiguration() *config.ClusterConfiguration {
     	},
     	DataSource: map[string]*config.DataSourceConfiguration{
             "ds1": {
-                URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
+                URL:      "tcp(xxx.xxx.xxx.xxx:xxxx)/ds0?charset=utf8&parseTime=true",
                 Username: "XXXX",
                 Password: "XXXX",
             },
             "ds2": {
-                URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
+                URL:      "tcp(xxx.xxx.xxx.xxx:xxxx)/ds0?charset=utf8&parseTime=true",
                 Username: "XXXX",
                 Password: "XXXX",
             },
@@ -149,27 +149,27 @@ etcd: # Optional
   
 datasource: # Require
   ds0:
-    url: tcp(127.0.0.1:8080)/ds0 
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds0 
     username: datasourceuser 
     password: datasourcepwd  
   ds0-slave0:
-    url: tcp(127.0.0.1:8080)/ds0_slave0
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds0_slave0
     username: datasourceuser
     password: datasourcepwd
   ds0-slave1: 
-    url: tcp(127.0.0.1:8080)/ds0_slave1
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds0_slave1
     username: datasourceuser
     password: datasourcepwd
   ds1:
-    url: tcp(127.0.0.1:8080)/ds1
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds1
     username: datasourceuser
     password: datasourcepwd
   ds1-slave0:
-    url: tcp(127.0.0.1:8080)/ds1_slave0
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds1_slave0
     username: datasourceuser
     password: datasourcepwd
   ds1-slave1:
-    url: tcp(127.0.0.1:8080)/ds1_slave1
+    url: tcp(xxx.xxx.xxx.xxx:xxxx)/ds1_slave1
     username: datasourceuser
     password: datasourcepwd
 
@@ -197,81 +197,6 @@ router: # Require
 
 ```
 
-### Fault injection
-You can also create a database service with injection failures by adding configurations.
-```bigquery
-func devsporeConfiguration() *config.ClusterConfiguration {
-    return &config.ClusterConfiguration{
-        Props: &mas.PropertiesConfiguration{
-            AppID:        "xxx",
-            MonitorID:    "xxx",
-            DatabaseName: "xx",
-        },
-        EtcdConfig: &etcd.EtcdConfiguration{
-            Address:     "127.0.0.1:2379,127.0.0.2:2379,127.0.0.3:2379",
-            Username:    "etcduser",
-            Password:    "etcdpwd",
-            HTTPSEnable: false,
-        },
-        RouterConfig: &config.RouterConfiguration{
-            Nodes: map[string]*config.NodeConfiguration{
-                "dc1": {
-                    Master: "ds1",
-                },
-                "dc2": {
-                    Master: "ds2",
-                },
-            },
-            Active: "dc1",
-        },
-        DataSource: map[string]*config.DataSourceConfiguration{
-            "ds1": {
-                URL:      "tcp(127.0.0.1:3306)/ds0?charset=utf8&parseTime=true",
-                Username: "XXXX",
-                Password: "XXXX",
-            },
-            "ds2": {
-                URL:      "tcp(127.0.0.1:3307)/ds0?charset=utf8&parseTime=true",
-                Username: "XXXX",
-                Password: "XXXX",
-            },
-        },
-        Chaos: &mas.InjectionProperties{
-            Active:     true,
-            Duration:   50,
-            Interval:   100,
-            Percentage: 100,
-            DelayInjection: &mas.DelayInjection{
-                Active:     true,
-                Percentage: 75,
-                TimeMs:     1000,
-                JitterMs:   500,
-            },
-            ErrorInjection: &mas.ErrorInjection{
-                Active:     true,
-                Percentage: 30,
-            },
-        },
-    }
-}
-```
-Alternatively, add the following configuration to the configuration file:
-```bigquery
-chaos:
-  active: true
-  duration: 20
-  interval: 100
-  percentage: 100
-  delayInjection:
-    active: true
-    percentage: 75
-    timeMs: 1000
-    jitterMs: 500
-  errorInjection:
-    active: true
-    percentage: 20
-```
-
 ### Description of Configuration Parameters
 
 <table width="100%">
@@ -282,7 +207,6 @@ chaos:
 <tr><td>etcd</td><td>EtcdConfiguration</td><td>For details,see the description of the data structure of EtcdConfiguration</td><td>Etcd configuration.If it is configured, it will be pulled from the remote end</td></tr>
 <tr><td>datasource</td><td>map[string]DataSourceConfiguration</td><td>The key is customized,for details about a single dimension,see the description of the data structure of DataSourceConfiguration</td><td>DataSource</td></tr>
 <tr><td>router</td><td>RouterConfiguration</td><td>For details,see the description of the data structure of RouterConfiguration</td><td>Route-related configuration</td></tr>
-<tr><td>chaos</td><td>InjectionProperties</td><td>For details,see the description of the data structure of InjectionProperties</td><td>Fault Injection Configuration</td></tr>
 </tbody>
 </table>
 
@@ -338,22 +262,5 @@ chaos:
 <tr><td>master</td><td>string</td><td>key of the datasource</td><td>Master node datasource</td></tr>
 <tr><td>loadBalance</td><td>string</td><td>RANDOM,ROUND_ROBIN</td><td>Load balancing algorithm for read/write separation</td></tr>
 <tr><td>slaves</td><td>[]string</td><td>key of the datasource</td><td>Slave node datasource</td></tr>
-</tbody>
-</table>
-
-<table width="100%">
-<thead><b>InjectionProperties</b></thead>
-<tbody>
-<tr><th>Parameter Name</th><th>Parameter Type</th><th>Value range</th><th>Description</th></tr>
-<tr><td>active</td><td>bool</td><td>true/false</td><td>Whether the fault injection function is enabled</td></tr>
-<tr><td>duration</td><td>int</td><td>-</td><td>Fault injection duration,in seconds</td></tr>
-<tr><td>interval</td><td>int</td><td>-</td><td>Fault injection interval,in seconds</td></tr>
-<tr><td>percentage</td><td>int</td><td>0-100</td><td>Injection failure probability</td></tr>
-<tr><td>delayInjection.active</td><td>bool</td><td>true/false</td><td>Delay injection switch</td></tr>
-<tr><td>delayInjection.percentage</td><td>int</td><td>0-100</td><td>Delayed Fault Effective Probability</td></tr>
-<tr><td>delayInjection.timeMs</td><td>int</td><td>-</td><td>Indicates the delay base,in milliseconds</td></tr>
-<tr><td>delayInjection.jitterMs</td><td>int</td><td>-</td><td>Indicates the jitter amplitude of the delay, in milliseconds</td></tr>
-<tr><td>errorInjection.active</td><td>bool</td><td>true/false</td><td>Abnormal injection switch</td></tr>
-<tr><td>errorInjection.percentage</td><td>int</td><td>0-100</td><td>Abnormal Fault Effective Probability</td></tr>
 </tbody>
 </table>

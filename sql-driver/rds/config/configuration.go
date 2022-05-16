@@ -36,7 +36,6 @@ type ClusterConfiguration struct {
 	EtcdConfig   *etcd.EtcdConfiguration             `yaml:"etcd"`
 	RouterConfig *RouterConfiguration                `yaml:"router"`
 	DataSource   map[string]*DataSourceConfiguration `yaml:"datasource"`
-	Chaos        *mas.InjectionProperties            `yaml:"chaos"`
 }
 
 // RouterConfiguration yaml router configuration entity

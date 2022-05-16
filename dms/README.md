@@ -22,7 +22,6 @@ type BizHandler func(msg *sarama.ConsumerMessage) error
 - sync: consume messages synchronous
 4. Create a dms consumer to consume kafka messages.
 
-See details in package example.
 
 ### Note
 1. when using async mode, the pool size should be larger than topic*partition numbers.

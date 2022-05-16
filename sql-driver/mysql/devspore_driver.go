@@ -37,7 +37,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/bwmarrin/snowflake"
 	"github.com/go-sql-driver/mysql"
 	"github.com/huaweicloud/devcloud-go/common/util"
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/config"
@@ -58,7 +57,7 @@ func init() {
 	actualDriver = mysql.MySQLDriver{}
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 	var err error
-	idGenerator, err = snowflake.NewNode(util.GetWorkerIDByIp())
+	idGenerator, err = util.NewNode(util.GetWorkerIDByIp())
 	if err != nil {
 		log.Printf("WARNING: create snowflake node failed, err: %v", err)
 	}
@@ -66,7 +65,7 @@ func init() {
 
 var (
 	actualDriver driver.Driver
-	idGenerator  *snowflake.Node
+	idGenerator  *util.Node
 )
 
 // OpenConnector implements driver.DriverContext
@@ -80,7 +79,7 @@ func (d DevsporeDriver) OpenConnector(yamlFilePath string) (driver.Connector, er
 		log.Printf("ERROR: create clusterdataSource failed, %v", err)
 		return nil, err
 	}
-	actualExecutor := newExecutor(clusterDataSource.RouterConfiguration.Retry, configuration.Chaos)
+	actualExecutor := newExecutor(clusterDataSource.RouterConfiguration.Retry)
 	return &devsporeConnector{clusterDataSource: clusterDataSource, executor: actualExecutor}, nil
 }
 
