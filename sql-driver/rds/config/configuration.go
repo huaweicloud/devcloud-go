@@ -41,10 +41,10 @@ type ClusterConfiguration struct {
 
 // RouterConfiguration yaml router configuration entity
 type RouterConfiguration struct {
-	Retry          *RetryConfiguration           `yaml:"retry"`
-	Nodes          map[string]*NodeConfiguration `yaml:"nodes"`
-	Active         string                        `yaml:"active"`
-	RouteAlgorithm string                        `yaml:"routeAlgorithm"`
+	Retry          *RetryConfiguration           `yaml:"retry" json:"retry"`
+	Nodes          map[string]*NodeConfiguration `yaml:"nodes" json:"nodes"`
+	Active         string                        `yaml:"active" json:"active"`
+	RouteAlgorithm string                        `yaml:"routeAlgorithm" json:"route-algorithm"`
 }
 
 // RetryConfiguration yaml retry configuration entity
