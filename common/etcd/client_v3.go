@@ -65,6 +65,10 @@ func NewEtcdV3Client(props *ClientProperties) (*EtcdV3Client, error) {
 			Certificates: []tls.Certificate{cert},
 			RootCAs:      pool,
 		}
+	} else {
+		config.TLS = &tls.Config{
+			InsecureSkipVerify: true,
+		}
 	}
 
 	client, err := clientv3.New(*config)
