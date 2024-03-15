@@ -63,8 +63,19 @@ func (c *Configuration) AssignRemoteConfig() {
 			c.RedisConfig.Servers = make(map[string]*ServerConfiguration)
 		}
 		for serverName, serverConfig := range remoteConfiguration.Servers {
-			if _, ok := c.RedisConfig.Servers[serverName]; ok {
-				c.RedisConfig.Servers[serverName] = serverConfig
+			if _, ok := c.RedisConfig.Servers[serverName]; !ok {
+				continue;
+			}
+			c.RedisConfig.Servers[serverName].Hosts = serverConfig.Hosts
+			c.RedisConfig.Servers[serverName].Type = serverConfig.Type
+			if len(serverConfig.Cloud) != 0 {
+				c.RedisConfig.Servers[serverName].Cloud = serverConfig.Cloud
+			}
+			if len(serverConfig.Region) != 0 {
+				c.RedisConfig.Servers[serverName].Region = serverConfig.Region
+			}
+			if len(serverConfig.Azs) != 0 {
+				c.RedisConfig.Servers[serverName].Azs = serverConfig.Azs
 			}
 		}
 	}
