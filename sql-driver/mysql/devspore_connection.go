@@ -19,6 +19,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/huaweicloud/devcloud-go/sql-driver/rds/datasource"
@@ -50,7 +51,7 @@ func (dc *devsporeConn) Close() error {
 func (dc *devsporeConn) Prepare(query string) (driver.Stmt, error) {
 	dsmt := &devsporeStmt{
 		ctx:   context.Background(),
-		query: query,
+		query: strings.ReplaceAll(query, "\"", "`"),
 		dc:    dc,
 	}
 	return dsmt, nil
@@ -96,7 +97,7 @@ func (dc *devsporeConn) BeginTx(ctx context.Context, opts driver.TxOptions) (dri
 func (dc *devsporeConn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
 	req := &executorReq{
 		ctx:        ctx,
-		query:      query,
+		query:      strings.ReplaceAll(query, "\"", "`"),
 		ctxArgs:    args,
 		methodName: QueryContext,
 		dc:         dc,
@@ -112,7 +113,7 @@ func (dc *devsporeConn) QueryContext(ctx context.Context, query string, args []d
 func (dc *devsporeConn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
 	req := &executorReq{
 		ctx:        ctx,
-		query:      query,
+		query:      strings.ReplaceAll(query, "\"", "`"),
 		ctxArgs:    args,
 		methodName: ExecContext,
 		dc:         dc,
@@ -128,7 +129,7 @@ func (dc *devsporeConn) ExecContext(ctx context.Context, query string, args []dr
 func (dc *devsporeConn) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
 	dsmt := &devsporeStmt{
 		ctx:   ctx,
-		query: query,
+		query: strings.ReplaceAll(query, "\"", "`"),
 		dc:    dc,
 	}
 	return dsmt, nil

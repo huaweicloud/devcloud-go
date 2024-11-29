@@ -19,10 +19,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
+	"github.com/huaweicloud/devcloud-go/common/util"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -54,7 +55,7 @@ func NewEtcdV3Client(props *ClientProperties) (*EtcdV3Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		caData, err := ioutil.ReadFile(props.CaCert)
+		caData, err := os.ReadFile(props.CaCert)
 		if err != nil {
 			return nil, err
 		}
@@ -88,11 +89,11 @@ func (c *EtcdV3Client) Get(key string) (string, error) {
 	resp, err := c.Client.Get(ctx, key)
 	cancel()
 	if err != nil {
-		log.Printf("ERROR: etcd get '%s' failed, err %v", key, err.Error())
+		log.Printf("ERROR: etcd get '%s' failed, err %v", util.EtcdKeyHideLogInfo(key), err.Error())
 		return "", err
 	}
 	if resp.Count <= 0 {
-		log.Printf("ERROR: etcd get '%s' resp count <= 0", key)
+		log.Printf("ERROR: etcd get '%s' resp count <= 0", util.EtcdKeyHideLogInfo(key))
 		return "", nil
 	}
 	return string(resp.Kvs[0].Value), nil
@@ -160,7 +161,7 @@ func (c *EtcdV3Client) Watch(prefix string, startIndex int64, onEvent func(event
 		for watchResp := range watchRespChan {
 			for _, event := range watchResp.Events {
 				log.Printf("INFO: watch event type:%v, key:%s, v:%s, modversion:%v", event.Type,
-					string(event.Kv.Key), string(event.Kv.Value), event.Kv.ModRevision)
+					util.EtcdKeyHideLogInfo(string(event.Kv.Key)), string(event.Kv.Value), event.Kv.ModRevision)
 				onEvent(event)
 			}
 		}
