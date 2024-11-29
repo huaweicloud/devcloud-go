@@ -23,6 +23,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -103,4 +104,16 @@ func FileExists(filePath string) bool {
 		return false
 	}
 	return true
+}
+
+func EtcdKeyHideLogInfo(input string) string {
+	// UUID regex pattern
+	uuidPattern := `[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`
+	re := regexp.MustCompile(uuidPattern)
+
+	// replace each UUID
+	input = re.ReplaceAllStringFunc(input, func(uuid string) string {
+		return uuid[:8] + "*"
+	})
+	return input
 }
