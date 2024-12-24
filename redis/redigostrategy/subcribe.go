@@ -44,7 +44,7 @@ func Subscribe(ctx context.Context, s RedigoStrategyMode, duration time.Duration
 	go func() {
 		defer pubsubConn.Close()
 		for {
-			switch v := pubsubConn.Receive().(type) {
+			switch v := pubsubConn.ReceiveWithTimeout(time.Duration(0)).(type) {
 			case error:
 				done <- &SubscribeData{err: v}
 			case redis.Message:
