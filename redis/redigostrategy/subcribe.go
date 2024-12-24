@@ -109,7 +109,7 @@ func (s *SubcribeTool) start() {
 			case <-s.stop:
 				return
 			default:
-				switch res := s.pubSubConn.Receive().(type) {
+				switch res := s.pubSubConn.ReceiveWithTimeout(time.Duration(0)).(type) {
 				case redis.Message:
 					if call, ok := s.callMap[res.Channel]; ok {
 						call(res.Channel, string(res.Data))
