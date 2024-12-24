@@ -24,7 +24,7 @@ require (
 	github.com/tidwall/redcon v1.6.2
 	go.etcd.io/etcd/api/v3 v3.5.1
 	go.etcd.io/etcd/client/v3 v3.5.1
-	go.etcd.io/etcd/server/v3 v3.5.1-bcs
+	go.etcd.io/etcd/server/v3 v3.5.1
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	gopkg.in/fatih/pool.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.1

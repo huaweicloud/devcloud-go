@@ -21,6 +21,7 @@ import (
 	"log"
 	"time"
 
+	sentinel "github.com/FZambia/sentinel/v2"
 	goredis "github.com/go-redis/redis/v8"
 	"github.com/gomodule/redigo/redis"
 	"github.com/huaweicloud/devcloud-go/mas"

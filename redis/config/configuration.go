@@ -27,6 +27,7 @@ import (
 
 	"github.com/huaweicloud/devcloud-go/common/etcd"
 	"github.com/huaweicloud/devcloud-go/mas"
+	"gopkg.in/yaml.v3"
 )
 
 // Configuration is used to create DevsporeClient

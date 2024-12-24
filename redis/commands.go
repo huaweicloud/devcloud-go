@@ -18,6 +18,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/huaweicloud/devcloud-go/redis/redigostrategy"
 	"github.com/huaweicloud/devcloud-go/redis/strategy"
