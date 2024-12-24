@@ -51,7 +51,7 @@ func ValidateHostPort(hostPort string) error {
 }
 
 // ConvertAddressStrToSlice convert address like "127.0.0.1:2379,127.0.0.1:2380" to endpoints like ["127.0.0.1:2379", "127.0.0.1:2380"]
-// if enableHttps, the func will convert address to endpoints like ["https://127.0.0.1:2379","https://127.0.0.1:2380"]
+// if enableHttps, the func will convert address to endpoints like ["https://127.0.0.1:2379", "https://127.0.0.1:2380"]
 func ConvertAddressStrToSlice(addressStr string, enableHttps bool) []string {
 	addressSlice := strings.Split(addressStr, ",")
 	var res []string
@@ -108,10 +108,10 @@ func FileExists(filePath string) bool {
 
 func EtcdKeyHideLogInfo(input string) string {
 	// UUID regex pattern
-	uuidPattern := `[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`
+	uuidPattern := `[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`
 	re := regexp.MustCompile(uuidPattern)
 
-	// replace each UUID
+	// Replace each UUID found with a masked version
 	input = re.ReplaceAllStringFunc(input, func(uuid string) string {
 		return uuid[:8] + "*"
 	})

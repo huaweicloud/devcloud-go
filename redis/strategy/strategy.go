@@ -20,13 +20,14 @@ import (
 	"context"
 	"log"
 	"reflect"
+	"strings"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/huaweicloud/devcloud-go/redis/config"
 )
 
 type StrategyMode interface {
-	RouteClient(opType commandType) redis.UniversalClient
+	RouteClient(opType CommandType) redis.UniversalClient
 	Close() error
 	Watch(ctx context.Context, fn func(*redis.Tx) error, keys ...string) error
 }
@@ -37,29 +38,36 @@ func NewStrategy(configuration *config.Configuration) StrategyMode {
 		return newSingleReadWriteStrategy(configuration)
 	case LocalReadSingleWriteMode:
 		return newLocalReadSingleWriteStrategy(configuration)
-	case DoubleWriteMode:
+	case LocalReadDoubleWriteMode:
+		return newLocalReadSingleWriteStrategy(configuration)
 		return newDoubleWriteStrategy(configuration)
+	case SingleReadDoubleWriteMode:
+		return newSingleReadWriteStrategy(configuration)
+		return newSingelReadDoubleWriteStrategy(configuration)
 	default:
 		log.Printf("ERROR: invalid route algorithm:%v", configuration.RouteAlgorithm)
 	}
 	return nil
 }
 
-type commandType int32
+type CommandType int32
 
 const (
-	CommandTypeRead commandType = iota
+	CommandTypeRead CommandType = iota
 	CommandTypeWrite
 	CommandTypeMulti
+	CommandTypeOther
 )
 
 const (
-	SingleReadWriteMode      = "single-read-write"
-	LocalReadSingleWriteMode = "local-read-single-write"
-	DoubleWriteMode          = "double-write"
+	SingleReadWriteMode       = "single-read-write"
+	LocalReadSingleWriteMode  = "local-read-single-write"
+	SingleReadDoubleWriteMode = "single-read-async-double-write"
+	LocalReadDoubleWriteMode  = "local-read-async-double-write"
 )
 
-func isWriteCommand(funcName string, args []interface{}) bool {
+func IsWriteCommand(funcName string, args []interface{}) bool {
+	funcName = strings.ToLower(funcName)
 	if _, ok := writeCommandMap[funcName]; ok {
 		return true
 	}

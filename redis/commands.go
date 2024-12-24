@@ -18,7 +18,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	redigo "github.com/gomodule/redigo/redis"
+	"github.com/huaweicloud/devcloud-go/redis/redigostrategy"
 	"github.com/huaweicloud/devcloud-go/redis/strategy"
 )
 
@@ -1200,4 +1201,55 @@ func (c *DevsporeClient) ClientUnblockWithError(ctx context.Context, id int64) *
 	cmd := redis.NewIntCmd(ctx, "client", "unblock", id, "error")
 	_ = c.strategy.RouteClient(strategy.CommandTypeWrite).Process(ctx, cmd)
 	return cmd
+}
+
+// redigoclient
+func (c *DevsporeRedigoClient) Do(commandName string, args ...interface{}) (reply interface{}, err error) {
+	return c.strategy.Do(redigostrategy.GetWriteReadCommandType(commandName, args...), commandName, args...)
+}
+
+func (c *DevsporeRedigoClient) DoContext(ctx context.Context, commandName string, args ...interface{}) (reply interface{}, err error) {
+	return c.strategy.Do(redigostrategy.GetWriteReadCommandType(commandName, args...), commandName, args...)
+}
+
+// cmds is [][]string or []*redigostrategy.RedigoCommandArgs
+func (c *DevsporeRedigoClient) Pipeline(cmds interface{}) (reply interface{}, err error) {
+	return c.strategy.Pipeline(false, cmds)
+}
+
+// cmds is [][]string or []*redigostrategy.RedigoCommandArgs
+func (c *DevsporeRedigoClient) Transactions(cmds interface{}) (reply interface{}, err error) {
+	return c.strategy.Pipeline(true, cmds)
+}
+
+func (c *DevsporeRedigoClient) ExcuteWrite(commandName string, args ...interface{}) (reply interface{}, err error) {
+	return c.strategy.Do(strategy.CommandTypeWrite, commandName, args...)
+}
+
+func (c *DevsporeRedigoClient) ExcuteRead(commandName string, args ...interface{}) (reply interface{}, err error) {
+	return c.strategy.Do(strategy.CommandTypeRead, commandName, args...)
+}
+
+func (c *DevsporeRedigoClient) Publish(channel string, message interface{}) error {
+	args := make([]interface{}, 2)
+	args[0] = channel
+	args[1] = message
+	_, err := c.strategy.Do(strategy.CommandTypeWrite, "Publish", args...)
+	return err
+}
+
+// single subscribe
+func (c *DevsporeRedigoClient) Subscribe(ctx context.Context, duration time.Duration, channel string) (interface{}, error) {
+	return redigostrategy.Subscribe(ctx, c.strategy, duration, channel)
+}
+
+// persistent subscribe tool
+func (c *DevsporeRedigoClient) GetSubscribeTool() *redigostrategy.SubcribeTool {
+	return redigostrategy.CreateSubcribeTool(c.strategy)
+}
+
+// get current conn ,not support dobule write & need defer close
+func (c *DevsporeRedigoClient) Dial() redigo.Conn {
+	conn := c.strategy.RouteClient(strategy.CommandTypeMulti).Get()
+	return conn
 }

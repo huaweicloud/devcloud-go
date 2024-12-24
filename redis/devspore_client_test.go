@@ -85,7 +85,7 @@ func TestDevsporeClient_ReadWriteSeparated(t *testing.T) {
 	client.configuration.RedisConfig.Servers["dc1"].Options.Addr = addr1
 	client.configuration.RedisConfig.Servers["dc2"].Options.Addr = addr2
 
-	assert.Equal(t, strategy.DoubleWriteMode, client.configuration.RouteAlgorithm)
+	assert.Equal(t, strategy.LocalReadDoubleWriteMode, client.configuration.RouteAlgorithm)
 	assert.Equal(t, "dc1", client.configuration.RedisConfig.Nearest)
 	assert.Equal(t, "dc2", client.configuration.Active)
 	ctx := context.Background()

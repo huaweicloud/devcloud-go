@@ -3,6 +3,7 @@ module github.com/huaweicloud/devcloud-go
 go 1.18
 
 require (
+	github.com/FZambia/sentinel/v2 v2.0.1
 	github.com/RoaringBitmap/roaring v0.9.4
 	github.com/Shopify/sarama v1.29.1
 	github.com/alicebob/miniredis/v2 v2.15.1
@@ -10,18 +11,20 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dolthub/go-mysql-server v0.11.0
 	github.com/dolthub/vitess v0.0.0-20211013185428-a8845fb919c1
-	github.com/emirpasic/gods v1.12.0
+	github.com/emirpasic/gods v1.12.1-0.20191007224813-4e23915b9a82
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/mna/redisc v1.4.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/panjf2000/ants/v2 v2.4.6
 	github.com/stretchr/testify v1.8.4
-	github.com/tidwall/redcon v1.4.4
+	github.com/tidwall/redcon v1.6.2
 	go.etcd.io/etcd/api/v3 v3.5.1
 	go.etcd.io/etcd/client/v3 v3.5.1
-	go.etcd.io/etcd/server/v3 v3.5.1
+	go.etcd.io/etcd/server/v3 v3.5.1-bcs
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	gopkg.in/fatih/pool.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -136,3 +139,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.9

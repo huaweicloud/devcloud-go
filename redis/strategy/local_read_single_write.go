@@ -30,7 +30,7 @@ func newLocalReadSingleWriteStrategy(configuration *config.Configuration) *Local
 	return &LocalReadSingleWriteStrategy{newAbstractStrategy(configuration)}
 }
 
-func (l *LocalReadSingleWriteStrategy) RouteClient(opType commandType) redis.UniversalClient {
+func (l *LocalReadSingleWriteStrategy) RouteClient(opType CommandType) redis.UniversalClient {
 	if opType == CommandTypeRead {
 		return l.nearestClient()
 	}

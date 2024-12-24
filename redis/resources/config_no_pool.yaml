@@ -22,14 +22,14 @@ redis:
     dc1:
       hosts: 127.0.0.1:6379
       password:
-      type: normal  # cluster, master-slave, normal
+      type: normal  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs
     dc2:
       hosts: 127.0.0.1:6380
       password:
-      type: normal  # cluster, master-slave, normal
+      type: normal  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs

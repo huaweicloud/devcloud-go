@@ -91,7 +91,7 @@ redis:
     dc1:
       hosts: 127.0.0.1:6379
       password: password
-      type: normal  # cluster, master-slave, normal
+      type: normal  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs
@@ -104,7 +104,7 @@ redis:
     dc2:
       hosts: 127.0.0.1:6380
       password: password
-      type: master-slave  # cluster, master-slave, normal
+      type: sentinel  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs
@@ -139,7 +139,7 @@ redis:
     dc1:
       hosts: 127.0.0.1:6379
       password:
-      type: normal  # cluster, master-slave, normal
+      type: normal  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs
@@ -152,7 +152,7 @@ redis:
     dc2:
       hosts: 127.0.0.1:6380
       password:
-      type: normal  # cluster, master-slave, normal
+      type: normal  # cluster, sentinel, normal
       cloud: huaweicloud  # cloud
       region: cn-north-4  # region id
       azs: az1  # azs
@@ -299,7 +299,7 @@ See more usages of ginkgo in **https://github.com/onsi/ginkgo**
 <tr><th>Parameter Name</th><th>Parameter Type</th><th>Value range</th><th>Description</th></tr>
 <tr><td>hosts</td><td>string</td><td>-</td><td>RedisServer IP address</td></tr>
 <tr><td>password</td><td>string</td><td>-</td><td>RedisServer password</td></tr>
-<tr><td>type</td><td>string</td><td>cluster,master-slave,normal</td><td>RedisServer Type</td></tr>
+<tr><td>type</td><td>string</td><td>cluster,sentinel,normal</td><td>RedisServer Type</td></tr>
 <tr><td>cloud</td><td>string</td><td>-</td><td>RedisServer cloud</td></tr>
 <tr><td>region</td><td>string</td><td>-</td><td>Region to which the RedisServer belongs</td></tr>
 <tr><td>azs</td><td>string</td><td>-</td><td>AZ to which RedisServer belongs</td></tr>
