@@ -30,7 +30,7 @@ func newSingleReadWriteStrategy(configuration *config.Configuration) *SingleRead
 	return &SingleReadWriteStrategy{newAbstractStrategy(configuration)}
 }
 
-func (s *SingleReadWriteStrategy) RouteClient(opType commandType) redis.UniversalClient {
+func (s *SingleReadWriteStrategy) RouteClient(opType CommandType) redis.UniversalClient {
 	return s.activeClient()
 }
 

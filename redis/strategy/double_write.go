@@ -57,7 +57,7 @@ func newDoubleWriteStrategy(configuration *config.Configuration) *DoubleWriteStr
 	return doubleWriteStrategy
 }
 
-func (d *DoubleWriteStrategy) RouteClient(opType commandType) redis.UniversalClient {
+func (d *DoubleWriteStrategy) RouteClient(opType CommandType) redis.UniversalClient {
 	return d.nearestClient()
 }
 
@@ -73,7 +73,7 @@ func (d *DoubleWriteStrategy) BeforeProcess(ctx context.Context, cmd redis.Cmder
 }
 
 func (d *DoubleWriteStrategy) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	if isWriteCommand(cmd.Name(), cmd.Args()) {
+	if IsWriteCommand(cmd.Name(), cmd.Args()) {
 		if d.Configuration.RedisConfig.AsyncRemotePoolConfiguration.Persist {
 			d.executeAsyncPersist(ctx, cmd.Args())
 		} else {
@@ -144,7 +144,7 @@ func (d *DoubleWriteStrategy) executeAsyncPersist(ctx context.Context, args []in
 		}
 	}
 	item := file.Item{
-		args,
+		Args: args,
 	}
 	d.fileOperationMap[remotename].WriteFile(d.Configuration.RedisConfig.AsyncRemotePoolConfiguration.PersistDir+remotename, item)
 }

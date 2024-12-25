@@ -20,7 +20,9 @@ from yaml and remote etcd.
 package config
 
 import (
-	"io/ioutil"
+	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/huaweicloud/devcloud-go/common/etcd"
@@ -64,7 +66,7 @@ func (c *Configuration) AssignRemoteConfig() {
 		}
 		for serverName, serverConfig := range remoteConfiguration.Servers {
 			if _, ok := c.RedisConfig.Servers[serverName]; !ok {
-				continue;
+				continue
 			}
 			c.RedisConfig.Servers[serverName].Hosts = serverConfig.Hosts
 			c.RedisConfig.Servers[serverName].Type = serverConfig.Type
@@ -119,7 +121,7 @@ func LoadConfiguration(yamlFilePath string) (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	yamlFile, err := ioutil.ReadFile(filepath.Clean(realPath))
+	yamlFile, err := os.ReadFile(filepath.Clean(realPath))
 	if err != nil {
 		return nil, err
 	}
@@ -128,21 +130,38 @@ func LoadConfiguration(yamlFilePath string) (*Configuration, error) {
 	if err = yaml.Unmarshal(yamlFile, configuration); err != nil {
 		return nil, nil
 	}
+	// check yaml config
+	if etcdCheckMessage := checkEtcdConfig(configuration); etcdCheckMessage != "" {
+		log.Printf("Info: yaml etcd config check fail, err [%s]", etcdCheckMessage)
+	}
+
 	if configuration.RedisConfig.ConnectionPoolConfig == nil {
 		return configuration, nil
 	}
-	// clear connectionPool Config
-	if !configuration.RedisConfig.ConnectionPoolConfig.Enable {
-		for _, serverConfig := range configuration.RedisConfig.Servers {
-			serverConfig.ConnectionPool = &ServerConnectionPoolConfiguration{}
-		}
-	} else {
-		// if connectionPool config is nil, set default config
-		for _, serverConfig := range configuration.RedisConfig.Servers {
-			if serverConfig.ConnectionPool == nil {
-				serverConfig.ConnectionPool = newDefaultConnectionPool()
-			}
+	for _, serverConfig := range configuration.RedisConfig.Servers {
+		if serverConfig.ConnectionPool == nil {
+			serverConfig.ConnectionPool = newDefaultConnectionPool()
 		}
 	}
 	return configuration, nil
+}
+
+func checkEtcdConfig(configuration *Configuration) string {
+	message := ""
+	if configuration.EtcdConfig == nil {
+		return message
+	}
+	if configuration.Props == nil {
+		if configuration.EtcdConfig != nil {
+			message = fmt.Sprintf("%syaml props is nil; ", message)
+		}
+	} else {
+		if configuration.Props.AppID == "" {
+			message = fmt.Sprintf("%syaml props appId is nil; ", message)
+		}
+		if configuration.Props.MonitorID == "" {
+			message = fmt.Sprintf("%syaml props montiorId is nil; ", message)
+		}
+	}
+	return message
 }

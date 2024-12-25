@@ -59,6 +59,17 @@ func (a *abstractStrategy) activeClient() redis.UniversalClient {
 	return a.getClientByServerName(activeServer)
 }
 
+func (a *abstractStrategy) noActiveClient() redis.UniversalClient {
+	activeServer := a.Configuration.Active
+	for name, _ := range a.Configuration.RedisConfig.Servers {
+		if name != activeServer {
+			return a.getClientByServerName(name)
+		}
+	}
+	log.Println("info: 'double-write' need another redis server for double write!")
+	return nil
+}
+
 func (a *abstractStrategy) nearestClient() redis.UniversalClient {
 	nearest := a.Configuration.RedisConfig.Nearest
 	return a.getClientByServerName(nearest)
@@ -100,8 +111,10 @@ func newClient(serverConfig *config.ServerConfiguration) redis.UniversalClient {
 	switch serverConfig.Type {
 	case config.ServerTypeCluster:
 		client = redis.NewClusterClient(serverConfig.ClusterOptions)
-	case config.ServerTypeNormal, config.ServerTypeMasterSlave:
+	case config.ServerTypeNormal:
 		client = redis.NewClient(serverConfig.Options)
+	case config.ServerTypeSentinel:
+		client = redis.NewFailoverClient(serverConfig.FailoverOptions)
 	default:
 		log.Printf("WARNING: invalid server type '%s'", serverConfig.Type)
 		client = redis.NewClient(serverConfig.Options)

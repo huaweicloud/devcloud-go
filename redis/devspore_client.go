@@ -28,6 +28,7 @@ import (
 	"log"
 
 	"github.com/huaweicloud/devcloud-go/redis/config"
+	"github.com/huaweicloud/devcloud-go/redis/redigostrategy"
 	"github.com/huaweicloud/devcloud-go/redis/strategy"
 )
 
@@ -37,6 +38,12 @@ type DevsporeClient struct {
 	ctx           context.Context
 	configuration *config.Configuration
 	strategy      strategy.StrategyMode
+}
+
+type DevsporeRedigoClient struct {
+	ctx           context.Context
+	configuration *config.Configuration
+	strategy      redigostrategy.RedigoStrategyMode
 }
 
 // NewDevsporeClientWithYaml create a devsporeClient with yaml configuration.
@@ -61,6 +68,32 @@ func NewDevsporeClient(configuration *config.Configuration) *DevsporeClient {
 	return &DevsporeClient{
 		ctx:           context.Background(),
 		strategy:      strategy.NewStrategy(configuration),
+		configuration: configuration,
+	}
+}
+
+// NewDevsporeClientWithYaml create a devsporeClient with yaml configuration.
+func NewDevsporeRedigoClientWithYaml(yamlFilePath string) *DevsporeRedigoClient {
+	configuration, err := config.LoadConfiguration(yamlFilePath)
+	if err != nil {
+		log.Fatalf("ERROR: create DevsporeClient failed, err [%v]", err)
+		return nil
+	}
+	return NewDevsporeRedigoClient(configuration)
+}
+
+// NewDevsporeClient create a devsporeClient with Configuration which will assign etcd remote configuration.
+func NewDevsporeRedigoClient(configuration *config.Configuration) *DevsporeRedigoClient {
+	configuration.AssignRemoteConfig()
+	configuration.ComputeNearestServer()
+	configuration.ConvertServerConfiguration()
+	if err := validateConfiguration(configuration); err != nil {
+		log.Fatalf("ERROR: configuration is invalid, config is [%+v], err [%v]", configuration, err)
+		return nil
+	}
+	return &DevsporeRedigoClient{
+		ctx:           context.Background(),
+		strategy:      redigostrategy.NewStrategy(configuration),
 		configuration: configuration,
 	}
 }
@@ -94,8 +127,8 @@ func validateConfiguration(configuration *config.Configuration) error {
 	if configuration.RedisConfig.Servers == nil || len(configuration.RedisConfig.Servers) == 0 {
 		return errors.New("servers is required")
 	}
-	if configuration.RouteAlgorithm == strategy.DoubleWriteMode && configuration.RedisConfig.Nearest == "" {
-		return fmt.Errorf("routeAlgorithm: %s required nearest setting", strategy.DoubleWriteMode)
+	if configuration.RouteAlgorithm == strategy.LocalReadDoubleWriteMode && configuration.RedisConfig.Nearest == "" {
+		return fmt.Errorf("routeAlgorithm: %s required nearest setting", strategy.LocalReadDoubleWriteMode)
 	}
 	return nil
 }
