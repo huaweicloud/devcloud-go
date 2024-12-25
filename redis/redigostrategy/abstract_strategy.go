@@ -109,19 +109,19 @@ func (r RedigoUniversalClient) Pipeline(transactions bool, cmds interface{}) (re
 	}
 	conn := r.Get()
 	defer conn.Close()
-	reviceCount := 0
+	receiveCount := 0
 	for k, cmd := range args {
 		if cmd.CommandName == "" {
 			log.Printf("pipeline cmds[%d] CommandName is empty\n", k)
 			continue
 		}
 		conn.Send(cmd.CommandName, cmd.Args...)
-		reviceCount++
+		receiveCount++
 	}
 	conn.Flush()
 	err = nil
-	reply = make([]interface{}, reviceCount)
-	for i := 0; i < reviceCount; i++ {
+	reply = make([]interface{}, receiveCount)
+	for i := 0; i < receiveCount; i++ {
 		r, err1 := conn.Receive()
 		if err1 != nil {
 			reply[i] = err1
